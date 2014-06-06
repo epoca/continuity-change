@@ -1,4 +1,4 @@
-package it.epocaricerca.standalone.continuityChange.model;
+package it.epocaricerca.standalone.continuityChange.parser.csv;
 
 import java.util.List;
 

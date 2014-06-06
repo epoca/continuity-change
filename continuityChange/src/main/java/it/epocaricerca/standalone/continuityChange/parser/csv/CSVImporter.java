@@ -1,6 +1,7 @@
 package it.epocaricerca.standalone.continuityChange.parser.csv;
 
-import it.epocaricerca.standalone.continuityChange.model.FileLine;
+import it.epocaricerca.standalone.continuityChange.model.Tag;
+import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
 
 import java.io.File;
 import java.io.FileReader;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,6 +23,9 @@ public class CSVImporter {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
 	private List<FileLine> lines = new ArrayList<FileLine>();
+	
+	@Autowired
+	private TagRepository tagRepository;
 
 	public void importCSVLines(String csvFile) throws Exception {
 		logger.info("csvFile " + csvFile);
@@ -32,13 +37,14 @@ public class CSVImporter {
 		int count = 0;
 		while ((nextLine = reader.read()) != null) {
 			lines.add(nextLine);
-			logger.info("firm: " + nextLine.getFirm());
-			logger.info("year: " + nextLine.getYear());
-			logger.info("citations: ");
+			
 			for (String citation : nextLine.getCitations()) {
-				logger.info(citation);
+				Tag tag = new Tag();
+				tag.setFirm(nextLine.getFirm());
+				tag.setYear(nextLine.getYear());
+				tag.setCitation(citation);
+				tagRepository.save(tag);
 			}
-			logger.info("");
 			count++;
 		}
 		logger.info("Total lines: " + count);

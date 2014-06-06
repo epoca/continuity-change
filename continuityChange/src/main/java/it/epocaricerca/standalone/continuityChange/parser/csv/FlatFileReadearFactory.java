@@ -5,8 +5,7 @@ import org.springframework.batch.item.file.LineCallbackHandler;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.core.io.FileSystemResource;
-
-import it.epocaricerca.standalone.continuityChange.model.FileLine;
+import it.epocaricerca.standalone.continuityChange.parser.csv.FileLineMapper;
 
 public class FlatFileReadearFactory {
 	
@@ -18,7 +17,7 @@ public class FlatFileReadearFactory {
 		DefaultLineMapper<FileLine> lineMapper = new DefaultLineMapper<FileLine>();
 
 		final DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
-		tokenizer.setDelimiter(',');
+		tokenizer.setDelimiter(",");
 
 		lineMapper.setLineTokenizer(tokenizer);
 		lineMapper.setFieldSetMapper(new FileLineMapper());

@@ -2,12 +2,18 @@ package it.epocaricerca.standalone.continuityChange.test.mockmvc;
 
 import java.io.InputStream;
 
-import it.epocaricerca.standalone.continuityChange.controller.Application;
+import flexjson.JSONSerializer;
+import it.epocaricerca.standalone.continuityChange.Application;
+import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
+import it.epocaricerca.standalone.continuityChange.transfer.FirmsTransfer;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
@@ -27,9 +33,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 public class ControllerTest {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+	
 	@Autowired
 	private WebApplicationContext wac;
 
+	@Autowired
+	private TagRepository tagRepository;
+	
 	private MockMvc mockMvc;
 
 	@Before
@@ -44,13 +55,28 @@ public class ControllerTest {
 		
 		MockMultipartFile file = new MockMultipartFile("315_tags_ma.txt", IOUtils.toByteArray(is));
 
+		is.close();
+
 		// Test upload csv
-		MvcResult result = mockMvc.perform(fileUpload("/upload")
+		mockMvc.perform(fileUpload("/upload")
 				.file(file)
 				.contentType(MediaType.parseMediaType("multipart/form-data")))
-				.andExpect(status().isOk())
-				.andReturn();
+				.andExpect(status().isOk());
 		
-		is.close();
+		logger.info("Num of tags: " + tagRepository.count());
+		
+		Assert.assertEquals("Pop-Rock", this.tagRepository.findByFirmAndYear("r779", "2003").get(0));
+		
+		Assert.assertEquals(2, this.tagRepository.countCitationRepetitions("r766", "1983", "Pop-Rock"));
+		
+		FirmsTransfer firms = new FirmsTransfer();
+		firms.setFirms(new String[]{"r766"});
+		
+		mockMvc.perform(post("/chart/top/{top}/memory/{memory}", 10, 10)
+				.content(new JSONSerializer().exclude("*.class").serialize(firms))
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.data").isArray());
+		
 	}
 }

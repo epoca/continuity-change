@@ -7,8 +7,6 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
 
-import it.epocaricerca.standalone.continuityChange.model.FileLine;
-
 public class FileLineMapper implements FieldSetMapper<FileLine> {
 
 	@Override

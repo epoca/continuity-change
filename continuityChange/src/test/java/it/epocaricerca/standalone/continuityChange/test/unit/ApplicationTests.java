@@ -1,6 +1,6 @@
 package it.epocaricerca.standalone.continuityChange.test.unit;
 
-import it.epocaricerca.standalone.continuityChange.controller.Application;
+import it.epocaricerca.standalone.continuityChange.Application;
 import it.epocaricerca.standalone.continuityChange.parser.csv.CSVImporter;
 
 import org.junit.Test;
