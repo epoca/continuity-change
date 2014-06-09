@@ -2,6 +2,7 @@ package it.epocaricerca.standalone.continuityChange.controller;
 
 import it.epocaricerca.standalone.continuityChange.parser.csv.CSVImporter;
 import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
+import it.epocaricerca.standalone.continuityChange.transfer.FileUploadResponse;
 import it.epocaricerca.standalone.continuityChange.transfer.FirmsTransfer;
 
 import java.io.BufferedInputStream;
@@ -46,6 +47,8 @@ public class ChartController {
 	private final String UPLOAD_CSV_URL = "/upload";
 	
 	private final String CHART_URL = "/chart/top/{top}/memory/{memory}";
+
+	private final String FIRMS_URL = "/firms";
 	
 	@Autowired
 	private CSVImporter csvImporter;
@@ -53,9 +56,17 @@ public class ChartController {
 	@Autowired
 	private TagRepository tagRepository;
 
+	private List<String> privateFirms = new ArrayList<String>();
+	
+	@RequestMapping(value = FIRMS_URL, method = RequestMethod.GET)
+	@ResponseBody
+	public String[] getFirms(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+		return this.privateFirms.toArray(new String[]{});
+	}
+	
 	@RequestMapping(value = UPLOAD_CSV_URL, method = RequestMethod.POST)
 	@ResponseBody
-	public void uploadData(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+	public FileUploadResponse uploadData(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
 
 		logger.info("Received upload multipart request");
 		File destFile = null;
@@ -85,6 +96,14 @@ public class ChartController {
 
 		csvImporter.importCSVLines(destFile.getAbsolutePath());
 		destFile.delete();
+		
+		privateFirms.clear();
+		privateFirms = this.tagRepository.findDistinctFirms();
+		
+		FileUploadResponse uploadResponse = new FileUploadResponse();
+		uploadResponse.setSuccess("true");
+		
+		return uploadResponse;
 	}
 	
 	@RequestMapping(value=CHART_URL, method = RequestMethod.POST)

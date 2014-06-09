@@ -98,7 +98,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<start-class>it.epocaricerca.standalone.continuityChange.controller.Application</start-class>
+		<start-class>it.epocaricerca.standalone.continuityChange.Application</start-class>
 		<java.version>1.6</java.version>
 	</properties>
 

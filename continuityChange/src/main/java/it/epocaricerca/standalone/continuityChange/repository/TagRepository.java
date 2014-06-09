@@ -15,5 +15,8 @@ public interface TagRepository extends JpaRepository<Tag, Long>{
 	
 	@Query("SELECT COUNT(t) FROM Tag t WHERE t.firm = :firm AND t.year = :year AND t.citation = :citation")
 	int countCitationRepetitions(@Param("firm") String firm, @Param("year") String year, @Param("citation") String citation);
+
+	@Query("SELECT DISTINCT t.firm FROM Tag t")
+	List<String> findDistinctFirms();
 	
 }
