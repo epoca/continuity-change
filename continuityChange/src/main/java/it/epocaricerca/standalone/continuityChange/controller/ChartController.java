@@ -8,6 +8,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
@@ -28,6 +29,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,6 +92,8 @@ public class ChartController {
 	public LinkedHashMap<String, Object> continuityChangeChart(@PathVariable int top, @PathVariable int memory,
 					@RequestBody FirmsTransfer firms, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
+		logger.info("invocked continuityChangeChart controller");
+		
 		//1. Get labels
 		ArrayList<String> firms_label = new ArrayList<String>();
 		firms_label.add("Year");
@@ -109,18 +113,21 @@ public class ChartController {
 		data.add(firms_label.toArray());
 		
 		for (int i = lastYear; i <= currentYear; i++) {
-			
+
+			logger.info("Selected Year: " + i);
 			List<String> currentTags = null;
 			List<Object> dataForYear = new ArrayList<Object>();
 			dataForYear.add("" + i);
 
 			for (String firm : firms.getFirms()) {
+
+				logger.info("Selected firm: " + firm);
+				
 				//2. Get tags by year
 				currentTags = this.tagRepository.findByFirmAndYear(firm, "" + i);
 
 				//3. For each year get the new citations
 				int previousYear = i - 1;
-				logger.info("Selected Year: " + i);
 
 				int countNewCitations = 0;
 				int totalRepetitions = 0;
@@ -154,6 +161,7 @@ public class ChartController {
 					depth = totalRepetitions/totalCitations;
 				}
 				logger.info("Score: " + score + " Depth: " + depth + " for year " + i);
+				logger.info("");
 				dataForYear.add(score);
 				dataForYear.add(depth);
 			}
@@ -164,6 +172,14 @@ public class ChartController {
 		result.put("data", data);
 		
 		return result;
-		
 	}
+	
+//	@ExceptionHandler(Exception.class)
+//	public void handleException(Exception ex, HttpServletResponse response) {
+//		try {
+//			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getLocalizedMessage());
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 }

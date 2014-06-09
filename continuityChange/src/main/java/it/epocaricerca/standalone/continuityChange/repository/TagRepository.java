@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface TagRepository extends JpaRepository<Tag, Long>{
 
-	@Query("SELECT t.citation FROM Tag t WHERE t.firm = :firm AND t.year = :year")
+	@Query("SELECT DISTINCT t.citation FROM Tag t WHERE t.firm = :firm AND t.year = :year")
 	List<String> findByFirmAndYear(@Param("firm") String firm, @Param("year") String year);
 	
 	@Query("SELECT COUNT(t) FROM Tag t WHERE t.firm = :firm AND t.year = :year AND t.citation = :citation")

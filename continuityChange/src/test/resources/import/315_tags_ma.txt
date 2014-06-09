@@ -1,5 +1,6 @@
 FIRM,YEAR,CITATIONS
 r766,1983,Pop-Rock Dance-Pop Pop-Rock Club-Dance Slick Effervescent Rambunctious Playful Light Joyous Carefree Energetic Party-Celebratory Stylish Exuberant Cheerful Happy Freewheeling Fun Sexy Exercise-Workout-Music Sexy Celebration Party-Time Playful Holidays-New-Years Girls-Night-Out
+r766,1985,Pop-Rock Dance-Pop Pop-Rock Club-Dance Slick Rambunctious Playful Light Carefree Energetic Party-Celebratory Exuberant Cheerful Happy Fun Sexy Exercise-Workout-Music Party-Time Playful Girls-Night-Out
 r767,1984,Pop-Rock Adult-Contemporary Dance-Pop Pop-Rock Club-Dance Party-Celebratory Energetic Carefree Sexual Stylish Fun Playful Sexy Lively Bright Irreverent Outrageous Joyous Brash Provocative Witty Confident Sensual Campy Theatrical Detached Club Prom TGIF Playful Hanging-Out Girls-Night-Out Party-Time
 r768,1986,Pop-Rock Dance-Pop Adult-Contemporary Pop-Rock Club-Dance Reflective Wistful Spiritual Freewheeling Intimate Sophisticated Elegant Ambitious Dramatic Playful Theatrical Party-Celebratory Stylish Exuberant Happy Confident Poignant Fun Sexy Energetic Girls-Night-Out Hanging-Out Playful Party-Time
 r769,1987,Soundtrack Dance-Pop Pop-Rock Club-Dance Party-Celebratory Stylish Cheerful Happy Fun Sexy

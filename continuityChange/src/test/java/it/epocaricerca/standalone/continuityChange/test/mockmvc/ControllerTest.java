@@ -69,12 +69,15 @@ public class ControllerTest {
 		
 		Assert.assertEquals(2, this.tagRepository.countCitationRepetitions("r766", "1983", "Pop-Rock"));
 		
-		FirmsTransfer firms = new FirmsTransfer();
-		firms.setFirms(new String[]{"r766"});
+		Assert.assertEquals(2, this.tagRepository.countCitationRepetitions("r773", "1992", "Pop-Rock"));
 		
-		mockMvc.perform(post("/chart/top/{top}/memory/{memory}", 10, 10)
-				.content(new JSONSerializer().exclude("*.class").serialize(firms))
-				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+		FirmsTransfer firms = new FirmsTransfer();
+		firms.setFirms(new String[]{"r766", "r773"});
+		
+		mockMvc.perform(post("/chart/top/{top}/memory/{memory}", 35, 35)
+				.content(new JSONSerializer().exclude("*.class").include("firms").serialize(firms))
+				.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))
+				.contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.data").isArray());
 		
