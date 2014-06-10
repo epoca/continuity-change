@@ -94,6 +94,10 @@
 			<artifactId>json-path</artifactId>
 			<version>0.9.1</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+		</dependency>
 	</dependencies>
 
 	<properties>
