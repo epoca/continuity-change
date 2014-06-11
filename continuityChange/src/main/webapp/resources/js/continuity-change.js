@@ -8,7 +8,7 @@ var CHART_MEMORY = 5;
 var isFirmSelected = false;
 
 function drawChart() {
-	
+
 	$('#chart_loader').fadeIn('fast');
 	
 	ContinuityChangeChart = '/chart/top/'+ CHART_YEARS + '/memory/'+ CHART_MEMORY;
@@ -23,13 +23,13 @@ function drawChart() {
 	if ($('#chart_firm3').val()!='')
 		chartFirms.push($('#chart_firm3').val());
 	
-	if(chartFirms.length == 0)
-		$('#chart_div').fadeOut('fast');
-	else {
-//		$('#no_chart_message_div').fadeOut('fast');
-		$('#chart_container').fadeIn('fast');
-		$('#chart_div').fadeIn('fast');
-	}
+//	if(chartFirms.length == 0)
+//		$('#chart_div').fadeOut('fast');
+//	else {
+////		$('#no_chart_message_div').fadeOut('fast');
+//		$('#chart_container').fadeIn('fast');
+//		$('#chart_div').fadeIn('fast');
+//	}
 	
 	chartFirms_json_data = JSON.stringify({
 		firms: chartFirms
@@ -65,18 +65,20 @@ function drawChart() {
 			'fontName': 'Open Sans, sans-serif'
 		};
 		
-		$('#chart_loader').fadeOut('fast');
+		$('#chart_loader').hide();
+		$('#chart_container').fadeIn('fast');
+		$('#chart_div').fadeIn('fast');
 		
 //		google.visualization.events.addListener(chart, 'error', errorHandler); 
 		
 		chart.draw(chartDataTable, chartOptions);
 
-		$('#chart_loader').fadeOut('fast');
 		$('#title_export_div').fadeIn('fast');
 		$('#export_button').fadeIn('fast');
+		$('#title_drop_div').fadeIn('fast');
 		$('#drop_button').fadeIn('fast');
 		
-		$(document).scrollTop( $("#chart_div").offset().top ); 
+		$(document).scrollTop($("#chart_div").offset().top); 
 		
 	});
 	
@@ -88,6 +90,7 @@ function drawChart() {
 
 $('.chart_firmselector').change(function() {
 	isFirmSelected = true;
+	$('#chart_div').hide();
 	drawChart();
 });
 
@@ -100,8 +103,10 @@ $(function() {
 		stop : function(event, ui) {
 			CHART_YEARS = ui.value;
 			$("#chart_slider1_badge").text(ui.value);
-			if(isFirmSelected)
+			if(isFirmSelected) {
+				$('#chart_div').hide();
 				drawChart();
+			}
 		}
 	});
 	$("#chart_slider1_badge").text($("#chart_slider1").slider("value"));
@@ -116,8 +121,10 @@ $(function() {
 		stop : function(event, ui) {
 			CHART_MEMORY = ui.value;
 			$("#chart_slider2_badge").text(CHART_MEMORY);
-			if(isFirmSelected)
+			if(isFirmSelected) {
+				$('#chart_div').hide();
 				drawChart();
+			}
 		}
 	});
 	$("#chart_slider2_badge").text(5);
@@ -195,6 +202,7 @@ $(document).ready(function() {
 			$('#chart_controls').fadeOut('fast');
 			$('#title_export_div').fadeOut('fast');
 			$('#export_button').fadeOut('fast');
+			$('#title_drop_div').fadeOut('fast');
 			$('#drop_button').fadeOut('fast');
 			$('.qq-upload-list').fadeOut('fast');
 			$('#chart_div').fadeOut('fast');
@@ -213,6 +221,7 @@ $('#chart_loader').fadeOut('fast');
 $('#chart_controls').fadeOut('fast');
 $('#title_export_div').fadeOut('fast');
 $('#export_button').fadeOut('fast');
+$('#title_drop_div').fadeOut('fast');
 $('#drop_button').fadeOut('fast');
 $('#chart_container').fadeOut('fast');
 

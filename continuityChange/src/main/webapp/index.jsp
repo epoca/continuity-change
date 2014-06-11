@@ -33,7 +33,7 @@
 			</div>
 				
 			<div class="row-fluid">
-				<div class="span6">
+				<div class="span3">
 					<div id="csv-fine-uploader"></div>
 				</div>
 			</div>
@@ -128,8 +128,8 @@
 				</div>
 			</div>
 			
-			<div class="row-fluid controls_container" id="chart_container">
-				<div class="span12 pagination-centered img-outer" id="chart_loader" style="margin-top:250px">
+			<div class="row-fluid controls_container" id="chart_container" style="height:500px">
+				<div class="span12 pagination-centered img-outer" id="chart_loader" style="margin-top:250px;">
 					<img src="resources/img/loader_1.gif" alt="Chart loader">
 				</div>
 				<div class="span12 chart" id="chart_div" style="height:500px"></div>
@@ -148,8 +148,22 @@
 			</div>
 			
 			<div class="row-fluid">
-				<div class="span6 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
-				<div class="span6 qq-upload-button btn btn-azure" id="drop_button"><i class="fa fa-trash-o"></i> Drop database and repeat</div>
+				<div class="span3 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
+			</div>
+			
+			<div class="row-fluid">
+				<div class="span12">
+					<!-- empty row -->
+				</div>
+			</div>
+			
+			<div class="row-fluid">
+				<div class="span6" id="title_drop_div">
+					<h3>4. Drop database</h3>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span3 qq-upload-button btn btn-amaranth" id="drop_button"><i class="fa fa-trash-o"></i> Drop database and repeat</div>
 			</div>
 		</section>
 		
