@@ -30,11 +30,18 @@
 				<div class="span6">
 					<h3>1. Create your database</h3>
 				</div>
+				<div id="insert_memory_title" class="span6">
+					<h3>2. Insert memory value</h3>
+				</div>
 			</div>
 				
 			<div class="row-fluid">
-				<div class="span3">
-					<div id="csv-fine-uploader"></div>
+				<div class="span6">
+					<div class="span5" id="csv-fine-uploader"></div>
+				</div>
+				<div class="span6 input-append" id="insert_memory_div">
+				  	<input class="span2" id="insert_memory_input" type="number" required>
+				  	<button id="calculate_button" class="btn" type="button">Go!</button>
 				</div>
 			</div>
 			
@@ -44,128 +51,23 @@
 				</div>
 			</div>
 			
-			<div id="chart_controls">
-				<div class="row-fluid">
-					<div class="span6">
-						<h3>2. Select input values (at least one firm)</h3>
-					</div>
+			<div class="row-fluid">
+				<div id="get_results_title" class="span6">
+					<h3>3. Calculate results</h3>
 				</div>
-				
-				<div class="row-fluid">
-					<div class="span6">
-						<strong class="controls_container_label">Show the last &nbsp;</strong> <span
-							class="badge badge-info" id="chart_slider1_badge">value</span><strong>
-							&nbsp;years</strong>
-						<div id="chart_slider1"></div>
-					</div> 
-						
-					<div class="span6">
-						<strong class="controls_container_label">Organizational memory </strong><span class="badge badge-success" id="chart_slider2_badge"></span>
-						<div id="chart_slider2"></div>
-					</div>
-				</div>
-				
-				<div class="row-fluid chart_first_item">
-					<div class="span4">
-						<strong>Select a firm</strong>
-						<div class="bfh-selectbox">
-				  			<input type="hidden" class="chart_firmselector" id="chart_firm1" name="chart_firm1" value="">
-				  			<a class="bfh-selectbox-toggle" role="button" data-toggle="bfh-selectbox" href="#">
-				    			<span class="bfh-selectbox-option input-small" data-option=""></span>
-				    			<b class="caret"></b>
-				 		 	</a>
-				  			<div class="bfh-selectbox-options">
-				    			<input type="text" class="bfh-selectbox-filter">
-				    			<div role="listbox" >
-				    				<ul role="option" class="firms-list">
-				    				</ul>
-				  				</div>
-				  			</div>
-						</div>
-					</div> <!-- end of span3 -->
-			
-					<div class="span4">
-						<strong>Select a firm</strong>
-						<div class="bfh-selectbox">
-				  			<input type="hidden" class="chart_firmselector" id="chart_firm2" name="chart_firm2" value="">
-				 	 		<a class="bfh-selectbox-toggle" role="button" data-toggle="bfh-selectbox" href="#">
-				    			<span class="bfh-selectbox-option input-small" data-option=""></span>
-				    			<b class="caret"></b>
-				  			</a>
-					  		<div class="bfh-selectbox-options">
-						    	<input type="text" class="bfh-selectbox-filter">
-						    	<div role="listbox">
-						    		<ul role="option" class="firms-list">
-						    		</ul>
-						  		</div>
-					  		</div>
-						</div>
-					</div> <!-- end of span3 -->
-			
-					<div class="span4">
-						<strong>Select a firm</strong>
-						<div class="bfh-selectbox">
-						  	<input type="hidden" class="chart_firmselector" id="chart_firm3" name="chart_firm3" value="">
-						  	<a class="bfh-selectbox-toggle" role="button" data-toggle="bfh-selectbox" href="#">
-						    	<span class="bfh-selectbox-option input-small" data-option=""></span>
-						    	<b class="caret"></b>
-						  	</a>
-						  	<div class="bfh-selectbox-options">
-							    <input type="text" class="bfh-selectbox-filter">
-							    <div role="listbox">
-							    	<ul role="option" class="firms-list">
-							    	</ul>
-							  	</div>
-						  	</div>
-						</div>
-					</div> <!-- end of span3 -->
+				<div id="drop_button_title" class="span6">
+					<h3>4. Drop database and repeat</h3>
 				</div>
 			</div>
 			
 			<div class="row-fluid">
-				<div class="span12">
-					<!-- empty row -->
+				<div class="span6">
+					<div class="span5 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
+				</div>
+				<div class="span6">
+					<div class="span5 qq-upload-button btn btn-azure" id="drop_button"><i class="fa fa-trash-o"></i> Drop</div>
 				</div>
 			</div>
-			
-			<div class="row-fluid controls_container" id="chart_container" style="height:500px">
-				<div class="span12 pagination-centered img-outer" id="chart_loader" style="margin-top:250px;">
-					<img src="resources/img/loader_1.gif" alt="Chart loader">
-				</div>
-				<div class="span12 chart" id="chart_div" style="height:500px"></div>
-			</div>
-			
-			<div class="row-fluid">
-				<div class="span12">
-					<!-- empty row -->
-				</div>
-			</div>
-			
-			<div class="row-fluid">
-				<div class="span6" id="title_export_div">
-					<h3>3. Export results</h3>
-				</div>
-			</div>
-			
-			<div class="row-fluid">
-				<div class="span3 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
-			</div>
-			
-			<div class="row-fluid">
-				<div class="span12">
-					<!-- empty row -->
-				</div>
-			</div>
-			
-			<div class="row-fluid">
-				<div class="span6" id="title_drop_div">
-					<h3>4. Drop database</h3>
-				</div>
-			</div>
-			<div class="row-fluid">
-				<div class="span3 qq-upload-button btn btn-amaranth" id="drop_button"><i class="fa fa-trash-o"></i> Drop database and repeat</div>
-			</div>
-		</section>
 		
 	</div>
 

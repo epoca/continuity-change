@@ -13,11 +13,13 @@ public class Tag {
 	@GeneratedValue
 	private Long id;
 	
-	private String firm;
+	private String entityId;
 	
-	private String year;
+	private String productId;
 	
-	private String citation;
+	private int time;
+	
+	private String attribute;
 
 	public Long getId() {
 		return id;
@@ -27,28 +29,36 @@ public class Tag {
 		this.id = id;
 	}
 
-	public String getFirm() {
-		return firm;
+	public String getEntityId() {
+		return entityId;
 	}
 
-	public void setFirm(String firm) {
-		this.firm = firm;
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
 	}
 
-	public String getYear() {
-		return year;
+	public String getProductId() {
+		return productId;
 	}
 
-	public void setYear(String year) {
-		this.year = year;
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 
-	public String getCitation() {
-		return citation;
+	public int getTime() {
+		return time;
 	}
 
-	public void setCitation(String citation) {
-		this.citation = citation;
+	public void setTime(int time) {
+		this.time = time;
+	}
+
+	public String getAttribute() {
+		return attribute;
+	}
+
+	public void setAttribute(String attribute) {
+		this.attribute = attribute;
 	}
 
 }

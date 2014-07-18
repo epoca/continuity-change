@@ -23,7 +23,7 @@ public class CSVImporter {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
 	private List<FileLine> lines = new ArrayList<FileLine>();
-	
+
 	@Autowired
 	private TagRepository tagRepository;
 
@@ -32,19 +32,21 @@ public class CSVImporter {
 
 		FlatFileItemReader<FileLine> reader = FlatFileReadearFactory.createCsvFileLineReader(csvFile);
 		reader.open(new ExecutionContext());
-		
+
 		FileLine nextLine;
 		int count = 0;
 		while ((nextLine = reader.read()) != null) {
 			lines.add(nextLine);
-			
-			for (String citation : nextLine.getCitations()) {
-				Tag tag = new Tag();
-				tag.setFirm(nextLine.getFirm());
-				tag.setYear(nextLine.getYear());
-				tag.setCitation(citation);
-				tagRepository.save(tag);
-			}
+
+			Tag tag = new Tag();
+			tag.setEntityId(nextLine.getEntityId());
+			tag.setProductId(nextLine.getProductId());
+			if(nextLine.getTime() != null && !nextLine.getTime().equals("") && !nextLine.getTime().equals("NULL"))
+				tag.setTime(Integer.parseInt(nextLine.getTime()));
+			else
+				tag.setTime(0);
+			tag.setAttribute(nextLine.getAttribute());
+			tagRepository.save(tag);
 			count++;
 		}
 		logger.info("Total lines: " + count);

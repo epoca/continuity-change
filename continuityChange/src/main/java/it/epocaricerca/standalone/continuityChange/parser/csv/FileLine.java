@@ -1,36 +1,44 @@
 package it.epocaricerca.standalone.continuityChange.parser.csv;
 
-import java.util.List;
-
 public class FileLine {
 
-	private String firm;
+private String entityId;
 	
-	private String year;
+	private String productId;
 	
-	private List<String> citations;
+	private String time;
+	
+	private String attribute;
 
-	public String getFirm() {
-		return firm;
+	public String getEntityId() {
+		return entityId;
 	}
 
-	public void setFirm(String firm) {
-		this.firm = firm;
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
 	}
 
-	public String getYear() {
-		return year;
+	public String getProductId() {
+		return productId;
 	}
 
-	public void setYear(String year) {
-		this.year = year;
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 
-	public List<String> getCitations() {
-		return citations;
+	public String getTime() {
+		return time;
 	}
 
-	public void setCitations(List<String> citations) {
-		this.citations = citations;
+	public void setTime(String time) {
+		this.time = time;
+	}
+
+	public String getAttribute() {
+		return attribute;
+	}
+
+	public void setAttribute(String attribute) {
+		this.attribute = attribute;
 	}
 }

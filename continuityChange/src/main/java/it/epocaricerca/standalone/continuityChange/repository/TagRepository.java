@@ -10,13 +10,24 @@ import org.springframework.data.repository.query.Param;
 
 public interface TagRepository extends JpaRepository<Tag, Long>{
 
-	@Query("SELECT DISTINCT t.citation FROM Tag t WHERE t.firm = :firm AND t.year = :year")
-	List<String> findByFirmAndYear(@Param("firm") String firm, @Param("year") String year);
+	@Query("SELECT DISTINCT t.attribute FROM Tag t WHERE t.entityId = :entityId AND t.time = :time")
+	List<String> findByEntityIdAndTime(@Param("entityId") String entityId, @Param("time") int time);
 	
-	@Query("SELECT COUNT(t) FROM Tag t WHERE t.firm = :firm AND t.year = :year AND t.citation = :citation")
-	int countCitationRepetitions(@Param("firm") String firm, @Param("year") String year, @Param("citation") String citation);
+	@Query("SELECT COUNT(t) FROM Tag t WHERE t.entityId = :entityId AND t.time = :time AND t.attribute = :attribute")
+	int countAttributeRepetitionsForEntity(@Param("entityId") String entityId, @Param("time") int time, @Param("attribute") String attribute);
+	
+	@Query("SELECT COUNT(t) FROM Tag t WHERE t.entityId != :entityId AND t.time = :time AND t.attribute = :attribute")
+	int countAttributeRepetitionsForOthers(@Param("entityId") String entityId, @Param("time") int time, @Param("attribute") String attribute);
+	
+	@Query("SELECT COUNT(t) FROM Tag t WHERE t.time = :time AND t.attribute = :attribute")
+	int countAttributeRepetitionsForAll(@Param("time") int time, @Param("attribute") String attribute);
 
-	@Query("SELECT DISTINCT t.firm FROM Tag t")
-	List<String> findDistinctFirms();
-	
+	@Query("SELECT DISTINCT t.attribute FROM Tag t")
+	List<String> findDistinctAttributes();
+
+	@Query("SELECT DISTINCT t.entityId FROM Tag t")
+	List<String> findDistinctEntities();
+
+	@Query("SELECT DISTINCT t.time FROM Tag t WHERE t.entityId = :entityId")
+	List<Integer> findDistinctTimesForEntity(@Param("entityId") String entityId);
 }

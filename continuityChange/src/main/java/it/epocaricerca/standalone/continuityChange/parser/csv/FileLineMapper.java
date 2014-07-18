@@ -1,8 +1,5 @@
 package it.epocaricerca.standalone.continuityChange.parser.csv;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
@@ -14,19 +11,10 @@ public class FileLineMapper implements FieldSetMapper<FileLine> {
 		
 		FileLine fileLine = new FileLine();
 		
-		fileLine.setFirm(fieldSet.readString("FIRM"));
-		fileLine.setYear(fieldSet.readString("YEAR"));
-		
-		String citations = fieldSet.readString("CITATIONS");
-		String[] splittedValues = citations.split(" ");
-		
-		List<String> result = new ArrayList<String>();
-		
-		for (String citation : splittedValues) {
-			result.add(citation);
-		}
-		
-		fileLine.setCitations(result);
+		fileLine.setAttribute(fieldSet.readString("ATTRIBUTE"));
+		fileLine.setTime(fieldSet.readString("TIME"));
+		fileLine.setEntityId(fieldSet.readString("ENTITYID"));
+		fileLine.setProductId(fieldSet.readString("PRODUCTID"));
 
 		return fileLine;
 	}
