@@ -24,7 +24,7 @@ public class ApplicationTests {
 
 	@Test
 	public void testCSVReading() throws Exception {
-		importer.importCSVLines("src/test/resources/import/patent.csv");
+		//importer.importCSVLines("src/test/resources/import/patent.csv");
 	}
 
 }

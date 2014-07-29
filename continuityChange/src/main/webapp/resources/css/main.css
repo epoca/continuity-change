@@ -30,6 +30,14 @@ section hr {
 	border-color: transparent !important;
 }
 
+#importBox .progress {
+	margin-top: 10px !important;
+	height: 5px !important;
+	-webkit-border-radius: 0 !important;
+	-moz-border-radius: 0 !important;
+	border-radius: 0 !important;
+}
+
 .btn i {
 	vertical-align: middle;
 }
@@ -1325,8 +1333,8 @@ li.check {
 }
 
 #importMsg {
-	font-size: 10px !important;
-	margin-top: 10px !important;
+	font-size: 16px !important;
+	margin-top: 0px !important;
 	-webkit-margin-before: 0 !important;
 }
 

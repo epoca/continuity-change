@@ -51,8 +51,6 @@ $(document).ready(function() {
 		if($.isNumeric(memory) && memory !== "") {
 			$('#get_results_title').fadeIn('fast');
 			$('#export_button').fadeIn('fast');
-			$('#drop_button').fadeIn('fast');
-			$('#drop_button_title').fadeIn('fast');
 			CHART_MEMORY = memory;
 		} else {
 			$('#get_results_title').fadeOut('fast');
@@ -77,10 +75,16 @@ $(document).ready(function() {
 			$('#export_button').fadeOut('fast');
 			$('#drop_button_title').fadeOut('fast');
 			$('#drop_button').fadeOut('fast');
-			$('.qq-upload-list').fadeOut('fast');
+			$('.alert-success').remove();
 			$('#get_results_title').fadeOut('fast');
 			$('#insert_memory_title').fadeOut('fast');
 			$('#insert_memory_div').fadeOut('fast');
+			$('.progress').css('visibility', 'hidden');
+	    	$('#importMsg').css('visibility', 'hidden');
+	    	$('.progress').removeClass('progress-success');
+	    	$('.progress').addClass('progress-info');
+        	$('#importProgressBar').css('width', '0%');
+        	$('#importMsg').text('Progress: 0%');
 		});
 		
 		request.fail(function(jqXHR, textStatus) {
@@ -89,7 +93,7 @@ $(document).ready(function() {
 		});
 	});
 	
-});
+}); //END OF DOCUMENT READY
 
 $('#export_button').fadeOut('fast');
 $('#drop_button_title').fadeOut('fast');
@@ -97,6 +101,31 @@ $('#drop_button').fadeOut('fast');
 $('#insert_memory_title').fadeOut('fast');
 $('#get_results_title').fadeOut('fast');
 $('#insert_memory_div').fadeOut('fast');
+
+function workflowRunning(isRunning) {
+	if (isRunning == true) {
+		$('.progress').css('visibility', 'visible');
+    	$('#importProgressBar').css('width', '0%');
+    	$('#importMsg').css('visibility', 'visible');
+    	
+    	var exportProgressIntervalId = setInterval(function(){
+    	NotificationPath = '/notifications';
+        $.ajax({ url: NotificationPath, success: function(data) {
+        	$('#importProgressBar').css('width', data.percentageProgress+'%');
+        	$('#importMsg').text('Progress: '+data.percentageProgress+'%');
+        	if (data.percentageProgress==100) {
+	        	clearInterval(exportProgressIntervalId);
+		    	$('#importProgressBar').css('width', '100%');
+		    	$('.progress').removeClass('progress-info');
+		    	$('.progress').addClass('progress-success');
+		    	$('#drop_button_title').fadeIn('fast');
+		    	$('#drop_button').fadeIn('fast');
+        	}
+        }, dataType: "json"});
+    }, 2000);
+
+	}
+};
 
 function openWindowWithPost(url, name) {
 	
@@ -121,5 +150,7 @@ function openWindowWithPost(url, name) {
 
 function exportChartAsCSV() {
 	var exportUrl = '/export/memory/' + CHART_MEMORY;
+	workflowRunning(true);
 	openWindowWithPost(exportUrl, "ChartExport");
+	
 }

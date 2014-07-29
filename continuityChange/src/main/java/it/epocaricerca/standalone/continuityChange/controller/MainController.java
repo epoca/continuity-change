@@ -2,6 +2,7 @@ package it.epocaricerca.standalone.continuityChange.controller;
 
 import it.epocaricerca.standalone.continuityChange.parser.csv.CSVImporter;
 import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
+import it.epocaricerca.standalone.continuityChange.transfer.Notification;
 import it.epocaricerca.standalone.continuityChange.transfer.Response;
 import it.epocaricerca.standalone.continuityChange.view.CSVView;
 
@@ -37,7 +38,7 @@ public class MainController {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
 	private final String UPLOAD_CSV_URL = "/upload";
-	
+
 	private final String CHART_URL = "/chart/memory/{memory}";
 
 	private final String ENTITIES_URL = "/entities";
@@ -45,21 +46,26 @@ public class MainController {
 	private final String DROP_DATABASE_URL = "/drop";
 
 	private final String CSV_EXPORT_URL = "/export/memory/{memory}";
-	
+
+	private final String NOTIFICATIONS_URL = "/notifications";
+
 	@Autowired
 	private CSVImporter csvImporter;
-	
+
 	@Autowired
 	private TagRepository tagRepository;
 
+	@Autowired
+	private ExportState exportState;
+
 	private List<String> privateEntities = new ArrayList<String>();
-	
+
 	@RequestMapping(value = ENTITIES_URL, method = RequestMethod.GET)
 	@ResponseBody
 	public String[] getEntities(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
 		return this.privateEntities.toArray(new String[]{});
 	}
-	
+
 	@RequestMapping(value = UPLOAD_CSV_URL, method = RequestMethod.POST)
 	@ResponseBody
 	public Response uploadData(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
@@ -84,7 +90,7 @@ public class MainController {
 				BufferedOutputStream dest = new BufferedOutputStream(fos,1024);
 
 				IOUtils.copy(is, dest);
-				
+
 				is.close();
 				dest.close();
 			}
@@ -92,23 +98,27 @@ public class MainController {
 
 		csvImporter.importCSVLines(destFile.getAbsolutePath());
 		destFile.delete();
-		
+
 		privateEntities.clear();
 		privateEntities = this.tagRepository.findDistinctAttributes();
-		
+
 		Response uploadResponse = new Response();
 		uploadResponse.setSuccess("true");
 		logger.info("Time to upload: " + (System.currentTimeMillis() - start));
 		return uploadResponse;
 	}
-	
+
 	@RequestMapping(value = CSV_EXPORT_URL, method = RequestMethod.POST, headers = "content-type=application/x-www-form-urlencoded;charset=UTF-8")
 	@ResponseBody
 	public ModelAndView continuityChangeExport(@PathVariable int memory, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		long start = System.currentTimeMillis();
 		logger.info("invocked continuityChangeChart controller");
-		
+
 		CSVView view = new CSVView();
+		
+		List<ChangeDepthThread> threads = new ArrayList<MainController.ChangeDepthThread>();
+
+		this.exportState.reset();
 		
 		//1. Get labels
 		ArrayList<String> labels = new ArrayList<String>();
@@ -125,96 +135,25 @@ public class MainController {
 		List<Object[]> data = new ArrayList<Object[]>();
 		data.add(labels.toArray());
 		
-		for (String entityId : allEntities) {
-			logger.info("Selected entity: " + entityId);
-			List<Integer> allTimes = this.tagRepository.findDistinctTimesForEntity(entityId);
-
-			List<Object> dataForYear = new ArrayList<Object>();
+		int chunk = allEntities.size()/7;
+		
+		List<List<String>> subLists = new ArrayList<List<String>>();
+		int index = 0;
+		for (int i = 0; i < 6; i++) {
+			subLists.add(allEntities.subList(index, (index + chunk)));
+			index += chunk;
+		}
+		subLists.add(allEntities.subList(index, (allEntities.size())));
+		
+		for (List<String> subList : subLists) {
 			
-			for (Integer time : allTimes) {
-				logger.info("Selected time: " + time);
-				dataForYear.clear();
-				dataForYear.add("" + time);
-				dataForYear.add(entityId);
-				
-				List<String> currentAttributes = this.tagRepository.findByEntityIdAndTime(entityId, time);
-				
-				//For each year get the new citations
-				int previousTime = time.intValue() - 1;
+			ChangeDepthThread thread = new ChangeDepthThread(subList, data, memory, allEntities.size());
+			threads.add(thread);
+			thread.start();
+		}
 
-				int countNewAttributesForEntity = 0;
-				int totalRepetitionsForEntity = 0;
-				int countNewAttributesForOthers = 0;
-				int totalRepetitionsForOthers = 0;
-				int countNewAttributesForAll = 0;
-				int totalRepetitionsForAll = 0;
-				
-				for (String currentAttribute : currentAttributes) {
-					boolean isNewForEntity = true; 
-					boolean isNewForOthers = true;
-					boolean isNewForAll = true;
-					int countRepetitionsForEntity = 0;
-					int countRepetitionsForOthers = 0;
-					int countRepetitionsForAll = 0;
-					for (int j = previousTime; j >= (previousTime - (memory-1)); j--) {
-						int repetitionsForEntity = this.tagRepository.countAttributeRepetitionsForEntity(entityId, j, currentAttribute);
-						int repetitionsForOthers = this.tagRepository.countAttributeRepetitionsForOthers(entityId, j, currentAttribute);
-						int repetitionsForAll = this.tagRepository.countAttributeRepetitionsForAll(j, currentAttribute);
-						
-						countRepetitionsForEntity += repetitionsForEntity;
-						countRepetitionsForOthers += repetitionsForOthers;
-						countRepetitionsForAll += repetitionsForAll;
-						
-						if(repetitionsForEntity != 0)
-							isNewForEntity = false;
-						if(repetitionsForOthers != 0)
-							isNewForOthers = false;
-						if(repetitionsForAll != 0)
-							isNewForAll = false;
-					}
-					totalRepetitionsForEntity += countRepetitionsForEntity;
-					totalRepetitionsForOthers += countRepetitionsForOthers;
-					totalRepetitionsForAll += countRepetitionsForAll;
-					if(isNewForEntity) {
-						countNewAttributesForEntity++;
-					}
-					if(isNewForOthers) {
-						countNewAttributesForOthers++;
-					}
-					if(isNewForAll) {
-						countNewAttributesForAll++;
-					}
-				}
-				
-				float changeForEntity = 0;
-				float depthForEntity = 0;
-				float changeForOthers = 0;
-				float depthForOthers = 0;
-				float changeForAll = 0;
-				float depthForAll = 0;
-				float totalAttributes = currentAttributes.size();
-				
-				if(totalAttributes > 0) {
-					changeForEntity = countNewAttributesForEntity/totalAttributes;
-					depthForEntity = totalRepetitionsForEntity/totalAttributes;
-					changeForOthers = countNewAttributesForOthers/totalAttributes;
-					depthForOthers = totalRepetitionsForOthers/totalAttributes;
-					changeForAll = countNewAttributesForAll/totalAttributes;
-					depthForAll = totalRepetitionsForAll/totalAttributes;
-				}
-				logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
-						" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
-						 " ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
-				logger.info("");
-				dataForYear.add(changeForEntity);
-				dataForYear.add(changeForOthers);
-				dataForYear.add(changeForAll);
-				dataForYear.add(depthForEntity);
-				dataForYear.add(depthForOthers);
-				dataForYear.add(depthForAll);
-				data.add(dataForYear.toArray());
-				
-			}
+		for (ChangeDepthThread currentThread : threads) {
+			currentThread.join();
 		}
 		
 		Map<String, Object> model = getModel(request);
@@ -224,21 +163,151 @@ public class MainController {
 		logger.info("Time to export: " + (System.currentTimeMillis() - start));
 		return new ModelAndView(view, model);
 	}
-	
+
+	private class ChangeDepthThread extends Thread {
+
+		private List<String> entities;
+		
+		private List<Object[]> data;
+		
+		private int memory;
+		
+		private int totalEntities;
+
+		public ChangeDepthThread(List<String> entities, List<Object[]> data, int memory, int totalEntities) {
+
+			this.entities = entities;
+			this.data = data;
+			this.memory = memory;
+			this.totalEntities = totalEntities;
+		}
+
+		@Override
+		public void run() {
+
+			for (String entityId : entities) {
+				
+				List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
+				
+				List<Object> dataForYear = new ArrayList<Object>();
+				for (Integer time : allTimes) {
+					dataForYear.clear();
+					dataForYear.add("" + time);
+					dataForYear.add(entityId);
+
+					List<String> currentAttributes = tagRepository.findByEntityIdAndTime(entityId, time);
+
+					//For each year get the new citations
+					int previousTime = time.intValue() - 1;
+
+					int countNewAttributesForEntity = 0;
+					int totalRepetitionsForEntity = 0;
+					int countNewAttributesForOthers = 0;
+					int totalRepetitionsForOthers = 0;
+					int countNewAttributesForAll = 0;
+					int totalRepetitionsForAll = 0;
+
+					for (String currentAttribute : currentAttributes) {
+						boolean isNewForEntity = true; 
+						boolean isNewForOthers = true;
+						boolean isNewForAll = true;
+						int countRepetitionsForEntity = 0;
+						int countRepetitionsForOthers = 0;
+						int countRepetitionsForAll = 0;
+						for (int j = previousTime; j >= (previousTime - (memory-1)); j--) {
+//							long start = System.currentTimeMillis();
+							int repetitionsForEntity = tagRepository.countAttributeRepetitionsForEntity(entityId, j, currentAttribute);
+//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+//							start = System.currentTimeMillis();
+							int repetitionsForOthers = tagRepository.countAttributeRepetitionsForOthers(entityId, j, currentAttribute);
+//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+//							start = System.currentTimeMillis();
+							int repetitionsForAll = tagRepository.countAttributeRepetitionsForAll(j, currentAttribute);
+//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+
+							countRepetitionsForEntity += repetitionsForEntity;
+							countRepetitionsForOthers += repetitionsForOthers;
+							countRepetitionsForAll += repetitionsForAll;
+
+							if(repetitionsForEntity != 0)
+								isNewForEntity = false;
+							if(repetitionsForOthers != 0)
+								isNewForOthers = false;
+							if(repetitionsForAll != 0)
+								isNewForAll = false;
+						}
+						totalRepetitionsForEntity += countRepetitionsForEntity;
+						totalRepetitionsForOthers += countRepetitionsForOthers;
+						totalRepetitionsForAll += countRepetitionsForAll;
+						if(isNewForEntity) {
+							countNewAttributesForEntity++;
+						}
+						if(isNewForOthers) {
+							countNewAttributesForOthers++;
+						}
+						if(isNewForAll) {
+							countNewAttributesForAll++;
+						}
+					}
+
+					float changeForEntity = 0;
+					float depthForEntity = 0;
+					float changeForOthers = 0;
+					float depthForOthers = 0;
+					float changeForAll = 0;
+					float depthForAll = 0;
+					float totalAttributes = currentAttributes.size();
+
+					if(totalAttributes > 0) {
+						changeForEntity = countNewAttributesForEntity/totalAttributes;
+						depthForEntity = totalRepetitionsForEntity/totalAttributes;
+						changeForOthers = countNewAttributesForOthers/totalAttributes;
+						depthForOthers = totalRepetitionsForOthers/totalAttributes;
+						changeForAll = countNewAttributesForAll/totalAttributes;
+						depthForAll = totalRepetitionsForAll/totalAttributes;
+					}
+					logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
+							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
+							" ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
+					logger.info("");
+					dataForYear.add(changeForEntity);
+					dataForYear.add(changeForOthers);
+					dataForYear.add(changeForAll);
+					dataForYear.add(depthForEntity);
+					dataForYear.add(depthForOthers);
+					dataForYear.add(depthForAll);
+					data.add(dataForYear.toArray());
+				}
+
+				exportState.increment();
+				exportState.setValue(exportState.getCounter()*100/totalEntities);
+			}
+			
+		}
+	}
+
 	@RequestMapping(value = DROP_DATABASE_URL, method = RequestMethod.GET)
 	@ResponseBody
 	public Response dropDatabase(HttpServletRequest request, HttpSession session) throws Exception {
-		
+
 		logger.info("Dropping database...");
-	
+
 		this.tagRepository.deleteAll();
 		this.privateEntities.clear();
-		
+
 		Response response = new Response();
 		response.setSuccess("true");
 		return response;
 	}
 	
+	@RequestMapping(value = NOTIFICATIONS_URL, method = RequestMethod.GET)
+	@ResponseBody
+	public Notification getNotifications(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+		
+		Notification notification = new Notification(exportState.getValue(), "");
+		return notification;
+	}
+
 	public Map<String, Object> getModel(HttpServletRequest request) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("format", getFormat(request));
@@ -250,13 +319,13 @@ public class MainController {
 		String format = uri.substring(uri.lastIndexOf(".") + 1);
 		return format;
 	}
-	
-//	@ExceptionHandler(Exception.class)
-//	public void handleException(Exception ex, HttpServletResponse response) {
-//		try {
-//			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getLocalizedMessage());
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
+
+	//	@ExceptionHandler(Exception.class)
+	//	public void handleException(Exception ex, HttpServletResponse response) {
+	//		try {
+	//			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getLocalizedMessage());
+	//		} catch (IOException e) {
+	//			e.printStackTrace();
+	//		}
+	//	}
 }

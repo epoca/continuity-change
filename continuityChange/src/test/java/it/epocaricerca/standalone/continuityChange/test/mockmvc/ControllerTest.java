@@ -62,11 +62,11 @@ public class ControllerTest {
 		
 		logger.info("Num of tags: " + tagRepository.count());
 		
-		Assert.assertEquals("1089", this.tagRepository.findByEntityIdAndTime("1", 1997).get(0));
-		
-		Assert.assertEquals(0, this.tagRepository.countAttributeRepetitionsForEntity("r766", 1983, "Pop-Rock"));
-		
-		Assert.assertEquals(0, this.tagRepository.countAttributeRepetitionsForEntity("r773", 1992, "Pop-Rock"));
+//		Assert.assertEquals("1089", this.tagRepository.findByEntityIdAndTime("1", 1997).get(0));
+//		
+//		Assert.assertEquals(0, this.tagRepository.countAttributeRepetitionsForEntity("r766", 1983, "Pop-Rock"));
+//		
+//		Assert.assertEquals(0, this.tagRepository.countAttributeRepetitionsForEntity("r773", 1992, "Pop-Rock"));
 		
 //		mockMvc.perform(post("/chart/memory/{memory}", 35)
 //				.accept(MediaType.parseMediaType("application/json;charset=UTF-8"))

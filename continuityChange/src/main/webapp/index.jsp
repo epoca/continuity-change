@@ -55,15 +55,33 @@
 				<div id="get_results_title" class="span6">
 					<h3>3. Calculate results</h3>
 				</div>
-				<div id="drop_button_title" class="span6">
-					<h3>4. Drop database and repeat</h3>
-				</div>
 			</div>
 			
 			<div class="row-fluid">
 				<div class="span6">
 					<div class="span5 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
 				</div>
+				<div class="span5">
+					<div class="progress progress-info" style="visibility:hidden;">
+						<div class="bar" id="importProgressBar" style="width:0%;"></div>
+					</div>
+					<p id="importMsg" style="visibility:hidden;"></p>
+				</div>
+			</div>
+			
+			<div class="row-fluid">
+				<div class="span12">
+					<!-- empty row -->
+				</div>
+			</div>
+			
+			<div class="row-fluid">
+				<div id="drop_button_title" class="span6">
+					<h3>4. Drop database and repeat</h3>
+				</div>
+			</div>
+			
+			<div class="row-fluid">
 				<div class="span6">
 					<div class="span5 qq-upload-button btn btn-azure" id="drop_button"><i class="fa fa-trash-o"></i> Drop</div>
 				</div>
