@@ -106,7 +106,7 @@ public class MainController {
 		return uploadResponse;
 	}
 
-	@RequestMapping(value = CSV_EXPORT_URL, method = RequestMethod.GET)
+	@RequestMapping(value = CSV_EXPORT_URL, method = RequestMethod.POST, headers = "content-type=application/x-www-form-urlencoded;charset=UTF-8")
 	@ResponseBody
 	public ModelAndView continuityChangeExport(@PathVariable int memory, @PathVariable boolean first, @PathVariable boolean second, 
 			@PathVariable boolean third, HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -156,22 +156,6 @@ function openWindowWithPost(url, name) {
 function exportChartAsCSV() {
 	var exportUrl = '/export/memory/' + CHART_MEMORY + '/first/true/second/false/third/false/';
 	workflowRunning(true);
-//	openWindowWithPost(exportUrl, "ChartExport");
-	
-	var request = $.ajax({
-		type : 'GET',
-		url : exportUrl,
-		dataType : "json",
-		contentType : 'application/json'
-	});
-
-	request.done(function(jsonResponse) {
-		workflowRunning(false);
-	});
-	
-	request.fail(function(jqXHR, textStatus) {
-		console.log("Request failed: " + textStatus);
-		console.log(jqXHR);
-	});
+	openWindowWithPost(exportUrl, "ChartExport");
 	
 }
