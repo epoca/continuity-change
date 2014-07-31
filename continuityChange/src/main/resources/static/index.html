@@ -31,7 +31,7 @@
 					<h3>1. Create your database</h3>
 				</div>
 				<div id="insert_memory_title" class="span6">
-					<h3>2. Insert memory value</h3>
+					<h3>2. Insert memory value and options</h3>
 				</div>
 			</div>
 				
@@ -40,8 +40,20 @@
 					<div class="span5" id="csv-fine-uploader"></div>
 				</div>
 				<div class="span6 input-append" id="insert_memory_div">
-				  	<input class="span2" id="insert_memory_input" type="number" required>
-				  	<button id="calculate_button" class="btn" type="button">Go!</button>
+                    <label class="checkbox inline">
+                        <input type="checkbox" id="option1" value="option1" checked> option 1
+                    </label>
+                    <label class="checkbox inline">
+                        <input type="checkbox" id="option2" value="option2"> option 2
+                    </label>
+                    <label class="checkbox inline">
+                        <input type="checkbox" id="option3" value="option3"> option 3
+                    </label>
+
+                    <p style="margin-top: 10px;">
+                        <input class="span2" id="insert_memory_input" type="number" required>
+                        <button id="calculate_button" class="btn" type="button">Go!</button>
+                    </p>
 				</div>
 			</div>
 			
