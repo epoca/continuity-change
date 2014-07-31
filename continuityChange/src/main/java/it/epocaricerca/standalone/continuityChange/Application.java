@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
 @ComponentScan
 @Controller
 @EnableAutoConfiguration
-public class Application {
+public class Application extends WebMvcConfigurerAdapter {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 	

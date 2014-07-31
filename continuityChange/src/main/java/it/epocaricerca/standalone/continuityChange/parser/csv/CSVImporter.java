@@ -88,7 +88,7 @@ public class CSVImporter {
 			for (FileLine line : internalLines) {
 				Tag tag = new Tag();
 				tag.setEntityId(line.getEntityId());
-				logger.info("entityId " + line.getEntityId());
+//				logger.info("entityId " + line.getEntityId());
 				tag.setProductId(line.getProductId());
 				if(line.getTime() != null && !line.getTime().equals("") && !line.getTime().equals("NULL"))
 					tag.setTime(Integer.parseInt(line.getTime()));

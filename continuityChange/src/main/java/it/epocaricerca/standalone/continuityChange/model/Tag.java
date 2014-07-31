@@ -7,6 +7,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 @Entity
+@Table(name="tag_table")
 public class Tag {
 	
 	@Id
