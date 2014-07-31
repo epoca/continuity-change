@@ -6,6 +6,9 @@ google.load('visualization', '1.0', {
 var CHART_MEMORY = 5;
 
 $(document).ready(function() {
+    var option1;
+    var option2;
+    var option3;
 	
 	csvmanualuploader = $('#csv-fine-uploader').fineUploader({
 		  request: {
@@ -50,8 +53,12 @@ $(document).ready(function() {
 	$('#calculate_button').click(function() {
 		
 		var memory = $('#insert_memory_input').val();
-		
-		if($.isNumeric(memory) && memory !== "") {
+
+        option1 = $('#option1:checked').val()?true:false;
+        option2 = $('#option2:checked').val()?true:false;
+        option3 = $('#option3:checked').val()?true:false;
+
+		if($.isNumeric(memory) && memory !== "" && (option1 || option2 || option3)) {
 			$('#get_results_title').fadeIn('fast');
 			$('#export_button').fadeIn('fast');
 			CHART_MEMORY = memory;
@@ -133,29 +140,20 @@ function workflowRunning(isRunning) {
 };
 
 function openWindowWithPost(url, name) {
-	
-	windowoption = 'width=1,height=1,left=100,top=100,resizable=no,scrollbars=no';
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    form.setAttribute("action", url);
+    form.setAttribute("accept-charset", "UTF-8");
 
-     var form = document.createElement("form");
-     form.setAttribute("method", "post");
-     form.setAttribute("action", url);
-     form.setAttribute("target", name);
-     form.setAttribute("accept-charset", "UTF-8");
+    document.body.appendChild(form);
 
-     document.body.appendChild(form);
+    form.submit();
 
-     //note I am using a post.htm page since I did not want to make double request to the page 
-     //it might have some Page_Load call which might screw things up.
-     window.open('export.jsp', '_blank', windowoption);
-     
-     form.submit();
-
-     document.body.removeChild(form);
+    document.body.removeChild(form);
 }
 
 function exportChartAsCSV() {
-	var exportUrl = '/export/memory/' + CHART_MEMORY + '/first/true/second/false/third/false/';
-	workflowRunning(true);
-	openWindowWithPost(exportUrl, "ChartExport");
-	
+    var exportUrl = '/export/memory/' + CHART_MEMORY + '/first/'+option1+'/second/'+option2+'/third/'+option3+'/';
+    workflowRunning(true);
+    openWindowWithPost(exportUrl, "ChartExport");
 }
