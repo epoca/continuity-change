@@ -18,7 +18,7 @@
 	<div id="index-container" class="container-fluid">
 	
 		<section id="content">
-			<h1>Continuity change chart</h1>
+			<h1>Continuity change</h1>
 			
 			<div class="row-fluid">
 				<div class="span12">
@@ -26,34 +26,59 @@
 				</div>
 			</div>
 			
+			<p class="lead">This application helps you to calculate the Continuity Change algorithm for your datasets. It consists of four steps:</p>
+			<ul>
+				<li><p class="lead">Create the application database starting from a csv file</p></li>
+				<li><p class="lead">Insert the memory value and select which kind of result you want: the application lets you compare each entity year with its own history, with the history of all the other entities
+				    and with its own history plus the history of all the other entities</p></li>
+				<li><p class="lead">Export the result set as a csv output file</p></li>
+				<li><p class="lead">Drop the dataset and restart</p></li>
+			</ul>
+			 <legend></legend>
+			
 			<div class="row-fluid">
-				<div class="span6">
-					<h3>1. Create your database</h3>
-				</div>
-				<div id="insert_memory_title" class="span6">
-					<h3>2. Insert memory value and options</h3>
+				<div class="span12">
+					<!-- empty row -->
 				</div>
 			</div>
 				
 			<div class="row-fluid">
 				<div class="span6">
+					<h3>1. Create your dataset</h3>
+					<img style="float:right;margin-left: 20px;" src="resources/img/how_to.png" alt="how_to" width="202" height="315" class="img-polaroid">
+					<p style="text-align:justify">The uploader accepts a text file in csv format (Comma Separated Values). In this format, each row is normally represented by a text line, 
+					splitted in fields by an appropriated symbol (a comma in this case); each field represent a value. The file must contain four columns:
+		      			<ul>
+			      			<li>the entity id</li>
+				  			<li>the product id</li>
+				  			<li>the time</li>
+				  			<li>the attribute</li>
+		      			</ul>
+	      			</p>
 					<div class="span5" id="csv-fine-uploader"></div>
 				</div>
-				<div class="span6 input-append" id="insert_memory_div">
-                    <label class="checkbox inline">
-                        <input type="checkbox" id="option1" value="option1" checked> option 1
+				<div class="span6" id="insert_memory_div">
+					<h3>2. Insert memory value and options</h3>
+					<p> In this section you can decide to calculate the algorithm comparing each entity attribute with its own history, with the hisotry of all the other entities,
+					with its own history plus the hisotry of all the other entities. Then, insert the memory value (e.g.: 5), which represents the length of the past history to compare.
+					IMPORTANT: you must insert a memory value to proceed!</p>
+					
+                    <label class="checkbox">
+                        <input type="checkbox" id="option1" value="option1" checked> Compare with enitity history
                     </label>
-                    <label class="checkbox inline">
-                        <input type="checkbox" id="option2" value="option2"> option 2
+                    <label class="checkbox">
+                        <input type="checkbox" id="option2" value="option2"> Compare with all the other enitity histories
                     </label>
-                    <label class="checkbox inline">
-                        <input type="checkbox" id="option3" value="option3"> option 3
+                    <label class="checkbox">
+                        <input type="checkbox" id="option3" value="option3"> Compare with enitity history + all the other enitity histories
                     </label>
 
-                    <p style="margin-top: 10px;">
-                        <input class="span2" id="insert_memory_input" type="number" required>
-                        <button id="calculate_button" class="btn" type="button">Go!</button>
-                    </p>
+					<div class="input-append">
+	                    <p style="margin-top: 10px;">
+	                        <input class="span2" id="insert_memory_input" type="number" required>
+	                        <button id="calculate_button" class="btn" type="button">Continue</button>
+	                    </p>
+	                </div>
 				</div>
 			</div>
 			
@@ -69,8 +94,14 @@
 				</div>
 			</div>
 			
-			<div class="row-fluid">
+			<div class="row-fluid" id="export_button_div">
 				<div class="span6">
+					<p> Click the bottom button to execute the algoritm; the result set will be downloaded as a csv file. Foreach entity will be given the following values, according to the options selected at step two</p>
+					<ul>
+		      			<li>CHANGE1 and DEPTH1 are the result of the comparison with enitity history</li>
+			  			<li>CHANGE2 and DEPTH2 are the result of the comparison with all the other enitity histories</li>
+			  			<li>CHANGE3 and DEPTH3 are the result of the comparison with enitity history + all the other enitity histories</li>
+	      			</ul>
 					<div class="span5 qq-upload-button btn btn-azure" id="export_button"><i class="fa fa-download"></i> Export as CSV</div>
 				</div>
 				<div class="span5">
@@ -93,8 +124,9 @@
 				</div>
 			</div>
 			
-			<div class="row-fluid">
-				<div class="span6">
+			<div class="row-fluid" id="drop_button_div">
+				<div class="span6" >
+					<p> Click the bottom button to delete the dataset created at step one and restart with a new iteration.</p>
 					<div class="span5 qq-upload-button btn btn-azure" id="drop_button"><i class="fa fa-trash-o"></i> Drop</div>
 				</div>
 			</div>
