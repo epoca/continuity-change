@@ -14,6 +14,8 @@ public class InMemoryRepository {
 	
 	private HashMap<String, Integer> entityAttributeCount = new HashMap<String, Integer>();
 	
+	private HashMap<String, Integer> entityIntervalTime = new HashMap<String, Integer>();
+	
 	private HashMap<String, HashMap<String, Integer>> allOtherEntitiesAttributeCount = new HashMap<String, HashMap<String, Integer>>();
 	
 	private HashMap<String, Integer> allEntitiesAttributeCount = new HashMap<String, Integer>();
@@ -42,12 +44,17 @@ public class InMemoryRepository {
 		return allOtherEntitiesAttributeCount;
 	}
 
-	public void resetEntityAttributeCount() {
+	public HashMap<String, Integer> getEntityIntervalTime() {
+		return entityIntervalTime;
+	}
+
+	public void resetHashMaps() {
 		this.entityAttributeCount.clear();
 		this.allEntitiesAttributeCount.clear();
 		this.entityAttributesMap.clear();
 		this.entityYearsMap.clear();
 		this.allOtherEntitiesAttributeCount.clear();
+		this.entityIntervalTime.clear();
 	}
 	
 	public synchronized void addEntityAttributeCount(String key, String attribute) {

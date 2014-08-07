@@ -41,7 +41,7 @@ public class MainMemoryController {
 
 	private final String UPLOAD_CSV_URL = "/upload";
 
-	private final String ENTITIES_URL = "/entities";
+	private final String MAX_MEMORY_URL = "/max-memory";
 
 	private final String DROP_DATABASE_URL = "/drop";
 
@@ -346,6 +346,25 @@ public class MainMemoryController {
 		}
 	}
 
+	@RequestMapping(value = MAX_MEMORY_URL, method = RequestMethod.GET)
+	@ResponseBody
+	public Response getMaxMemory(HttpServletRequest request, HttpSession session) throws Exception {
+
+		logger.info("Invocked getMaxMemory controller...");
+		
+		int memory = 0;
+		
+		for (Integer value : this.inMemoryRepository.getEntityIntervalTime().values()) {
+			if(memory < value.intValue())
+				memory = value.intValue();
+		}
+
+		Response response = new Response();
+		response.setSuccess("true");
+		response.setMaxMemory(memory);
+		return response;
+	}
+
 	@RequestMapping(value = DROP_DATABASE_URL, method = RequestMethod.GET)
 	@ResponseBody
 	public Response dropDatabase(HttpServletRequest request, HttpSession session) throws Exception {
@@ -353,6 +372,7 @@ public class MainMemoryController {
 		logger.info("Dropping database...");
 
 		this.tagRepository.deleteAll();
+		this.inMemoryRepository.resetHashMaps();
 
 		Response response = new Response();
 		response.setSuccess("true");

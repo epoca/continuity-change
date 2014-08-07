@@ -70,12 +70,11 @@ public class CSVImporter {
 			parseCSVThread.join();
 		}
 		
-//		for (String key : inMemoryRepository.getEntityAttributeCount().keySet()) {
-//			logger.info(key + " " + inMemoryRepository.getEntityAttributeCount().get(key));
-//		}
-		
 		List<String> allEntities = this.tagRepository.findDistinctEntities();
+		
 		for (String entityId : allEntities) {
+			inMemoryRepository.getEntityIntervalTime().put(entityId, tagRepository.getIntervalForEntity(entityId));
+			
 			List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
 			inMemoryRepository.addEntityYear(entityId, allTimes);
 			
@@ -84,14 +83,6 @@ public class CSVImporter {
 				inMemoryRepository.addEntityAttributes(entityId + "|" + time, currentAttributes);
 			}
 		}
-		
-//		for (String key : inMemoryRepository.getEntityYearsMap().keySet()) {
-//			logger.info(key + " " + inMemoryRepository.getEntityYearsMap().get(key));
-//		}
-//		
-//		for (String key : inMemoryRepository.getEntityAttributesMap().keySet()) {
-//			logger.info(key + " " + inMemoryRepository.getEntityAttributesMap().get(key));
-//		}
 
 		logger.info("Total lines: " + count);
 	}

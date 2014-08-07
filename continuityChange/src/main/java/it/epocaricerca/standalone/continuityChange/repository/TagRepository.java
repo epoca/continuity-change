@@ -39,4 +39,8 @@ public interface TagRepository extends JpaRepository<Tag, Long>{
 	@Query("SELECT DISTINCT t.time FROM Tag t WHERE t.entityId = :entityId")
 	List<Integer> findDistinctTimesForEntity(@Param("entityId") String entityId);
 	
+	@Query("SELECT MAX(t.time) - MIN(t.time) FROM Tag t WHERE t.entityId = :entityId GROUP BY t.entityId")
+	Integer getIntervalForEntity(@Param("entityId") String entityId);
+
+	
 }
