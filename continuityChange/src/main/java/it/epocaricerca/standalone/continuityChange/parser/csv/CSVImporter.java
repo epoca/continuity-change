@@ -1,6 +1,7 @@
 package it.epocaricerca.standalone.continuityChange.parser.csv;
 
 import it.epocaricerca.standalone.continuityChange.model.Tag;
+import it.epocaricerca.standalone.continuityChange.repository.InMemoryRepository;
 import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
 
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class CSVImporter {
 
 	@Autowired
 	private TagRepository tagRepository;
+	
+	@Autowired
+	private InMemoryRepository inMemoryRepository;
 
 	public void importCSVLines(String csvFile) throws Exception {
 		logger.info("csvFile " + csvFile);
@@ -65,6 +69,29 @@ public class CSVImporter {
 		for (ParseCSVThread parseCSVThread : threads) {
 			parseCSVThread.join();
 		}
+		
+//		for (String key : inMemoryRepository.getEntityAttributeCount().keySet()) {
+//			logger.info(key + " " + inMemoryRepository.getEntityAttributeCount().get(key));
+//		}
+		
+		List<String> allEntities = this.tagRepository.findDistinctEntities();
+		for (String entityId : allEntities) {
+			List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
+			inMemoryRepository.addEntityYear(entityId, allTimes);
+			
+			for (Integer time : allTimes) {
+				List<String> currentAttributes = tagRepository.findByEntityIdAndTime(entityId, time);
+				inMemoryRepository.addEntityAttributes(entityId + "|" + time, currentAttributes);
+			}
+		}
+		
+//		for (String key : inMemoryRepository.getEntityYearsMap().keySet()) {
+//			logger.info(key + " " + inMemoryRepository.getEntityYearsMap().get(key));
+//		}
+//		
+//		for (String key : inMemoryRepository.getEntityAttributesMap().keySet()) {
+//			logger.info(key + " " + inMemoryRepository.getEntityAttributesMap().get(key));
+//		}
 
 		logger.info("Total lines: " + count);
 	}
@@ -95,7 +122,13 @@ public class CSVImporter {
 				else
 					tag.setTime(0);
 				tag.setAttribute(line.getAttribute());
-
+				
+				inMemoryRepository.addEntityAttributeCount(tag.getEntityId() + "|" + tag.getTime() + "|" + tag.getAttribute(), tag.getAttribute());
+				
+				inMemoryRepository.addAllOtherEntitiesAttributeCount(tag.getTime() + "|" + tag.getAttribute(), tag.getEntityId(), tag.getAttribute());
+				
+				inMemoryRepository.addAllEntitiesAttributeCount(tag.getTime() + "|" + tag.getAttribute(), tag.getAttribute());
+				
 				tags.add(tag);
 				count++;
 			}
