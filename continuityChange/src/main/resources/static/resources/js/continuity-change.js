@@ -43,13 +43,17 @@ $(document).ready(function() {
 			if(responseJSON != null && responseJSON.success == "true") {
 				$('#insert_memory_title').fadeIn('fast');
 				$('#insert_memory_div').fadeIn('fast');
+				$('#csv-fine-uploader .qq-upload-button').fadeOut('fast');
+				$('#csv-fine-uploader .qq-upload-list').css('margin-top', '0px');
+				$('#remove_file_button').fadeIn('fast');
+				CHART_MEMORY = responseJSON.maxMemory;
 			}
 		})
 		.on('submit', function(event, id, name, responseJSON) {
 			console.log('submit');
 		});
 
-	$('#calculate_button').click(function() {
+	$('#continue_button').click(function() {
 
 		var memory = $('#insert_memory_input').val();
 
@@ -57,13 +61,17 @@ $(document).ready(function() {
         option2 = $('#option2:checked').val()?true:false;
         option3 = $('#option3:checked').val()?true:false;
 
-		if($.isNumeric(memory) && memory !== "" && (option1 || option2 || option3)) {
+		if(option1 || option2 || option3) {
 			$('#get_results_title').fadeIn('fast');
 			$('#export_button_div').fadeIn('fast');
-			CHART_MEMORY = memory;
+			$('#progress_bar_div').fadeIn('fast');
+			
+			if($.isNumeric(memory) && memory !== "")
+				CHART_MEMORY = memory;
 		} else {
 			$('#get_results_title').fadeOut('fast');
 			$('#export_button_div').fadeOut('fast');
+			$('#progress_bar_div').fadeOut('fast');
 			$('#drop_button_div').fadeOut('fast');
 			$('#drop_button_title').fadeOut('fast');
 		}
@@ -82,6 +90,9 @@ $(document).ready(function() {
 
 		request.done(function(jsonResponse) {
 			workflowRunning(false);
+			$('#csv-fine-uploader .qq-upload-button').fadeIn('fast');
+			$('#csv-fine-uploader .qq-upload-list').css('margin-top', '10px');
+			$('#remove_file_button').fadeOut('fast');
 		});
 
 		request.fail(function(jqXHR, textStatus) {
@@ -89,6 +100,54 @@ $(document).ready(function() {
 			console.log(jqXHR);
 		});
 	});
+	
+	$('#reuse_button').click(function(){
+		$('#export_button_div').fadeOut('fast');
+		$('#drop_button_title').fadeOut('fast');
+		$('#drop_button_div').fadeOut('fast');
+		$('#get_results_title').fadeOut('fast');
+		$('#progress_bar_div').fadeOut('fast');
+		$('.progress').css('visibility', 'hidden');
+    	$('#importMsg').css('visibility', 'hidden');
+    	$('.progress').removeClass('progress-success');
+    	$('.progress').addClass('progress-info');
+    	$('#importProgressBar').css('width', '0%');
+    	$('#importMsg').text('Progress: 0%');
+	});
+	
+	$('#remove_file_button').click(function(){
+		
+		var request = $.ajax({
+			type : 'GET',
+			url : '/drop',
+			dataType : "json",
+			contentType : 'application/json'
+		});
+
+		request.done(function(jsonResponse) {
+			workflowRunning(false);
+			$('#remove_file_button').fadeOut('fast');
+			$('#csv-fine-uploader .qq-upload-button').fadeIn('fast');
+			$('#csv-fine-uploader .qq-upload-list').css('margin-top', '10px');
+			$('#export_button_div').fadeOut('fast');
+			$('#drop_button_title').fadeOut('fast');
+			$('#drop_button_div').fadeOut('fast');
+			$('#get_results_title').fadeOut('fast');
+			$('#progress_bar_div').fadeOut('fast');
+			$('.progress').css('visibility', 'hidden');
+	    	$('#importMsg').css('visibility', 'hidden');
+	    	$('.progress').removeClass('progress-success');
+	    	$('.progress').addClass('progress-info');
+	    	$('#importProgressBar').css('width', '0%');
+	    	$('#importMsg').text('Progress: 0%');
+		});
+
+		request.fail(function(jqXHR, textStatus) {
+			console.log("Request failed: " + textStatus);
+			console.log(jqXHR);
+		});
+	});
+	
 
 }); //END OF DOCUMENT READY
 
@@ -98,6 +157,8 @@ $('#drop_button_div').fadeOut('fast');
 $('#insert_memory_title').fadeOut('fast');
 $('#get_results_title').fadeOut('fast');
 $('#insert_memory_div').fadeOut('fast');
+$('#progress_bar_div').fadeOut('fast');
+$('#remove_file_button').fadeOut('fast');
 
 function workflowRunning(isRunning) {
 	if (isRunning == true) {
@@ -119,10 +180,11 @@ function workflowRunning(isRunning) {
 		    	$('#drop_button_div').fadeIn('fast');
         	}
         }, dataType: "json"});
-    }, 2000);
+    }, 500);
 
 	} else {
 		$('#export_button_div').fadeOut('fast');
+		$('#progress_bar_div').fadeIn('fast');
 		$('#drop_button_title').fadeOut('fast');
 		$('#drop_button_div').fadeOut('fast');
 		$('.alert-success').remove();

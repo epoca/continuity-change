@@ -41,8 +41,6 @@ public class MainMemoryController {
 
 	private final String UPLOAD_CSV_URL = "/upload";
 
-	private final String MAX_MEMORY_URL = "/max-memory";
-
 	private final String DROP_DATABASE_URL = "/drop";
 
 	private final String CSV_EXPORT_URL = "/export/memory/{memory}/first/{first}/second/{second}/third/{third}/";
@@ -94,8 +92,16 @@ public class MainMemoryController {
 		csvImporter.importCSVLines(destFile.getAbsolutePath());
 		destFile.delete();
 
+		int memory = 0;
+		
+		for (Integer value : this.inMemoryRepository.getEntityIntervalTime().values()) {
+			if(memory < value.intValue())
+				memory = value.intValue();
+		}
+
 		Response uploadResponse = new Response();
 		uploadResponse.setSuccess("true");
+		uploadResponse.setMaxMemory(memory);
 		logger.info("Time to upload: " + (System.currentTimeMillis() - start));
 		return uploadResponse;
 	}
@@ -105,7 +111,7 @@ public class MainMemoryController {
 	public ModelAndView continuityChangeExport(@PathVariable int memory, @PathVariable boolean first, @PathVariable boolean second, 
 			@PathVariable boolean third, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		long start = System.currentTimeMillis();
-		logger.info("invocked continuityChangeChart controller");
+		logger.info("invocked continuityChangeExport controller with memory " + memory);
 
 		CSVView view = new CSVView();
 		
@@ -344,25 +350,6 @@ public class MainMemoryController {
 			}
 			
 		}
-	}
-
-	@RequestMapping(value = MAX_MEMORY_URL, method = RequestMethod.GET)
-	@ResponseBody
-	public Response getMaxMemory(HttpServletRequest request, HttpSession session) throws Exception {
-
-		logger.info("Invocked getMaxMemory controller...");
-		
-		int memory = 0;
-		
-		for (Integer value : this.inMemoryRepository.getEntityIntervalTime().values()) {
-			if(memory < value.intValue())
-				memory = value.intValue();
-		}
-
-		Response response = new Response();
-		response.setSuccess("true");
-		response.setMaxMemory(memory);
-		return response;
 	}
 
 	@RequestMapping(value = DROP_DATABASE_URL, method = RequestMethod.GET)
