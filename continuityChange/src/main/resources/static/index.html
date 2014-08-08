@@ -29,7 +29,7 @@
 			<p class="lead">This application helps you to calculate the Continuity Change algorithm for your data sets. It consists of four steps:</p>
 			<ol>
 				<li class="lead"><p class="lead">Create the application database starting from a csv file</p></li>
-				<li class="lead"><p class="lead">Insert the memory value and select which kind of result you want</p></li>
+				<li class="lead"><p class="lead">Insert the memory value</p></li>
 				<li class="lead"><p class="lead">Execute the algorithm and export the result set as a csv output file</p></li>
 				<li class="lead"><p class="lead">Drop the data set or reuse it</p></li>
 			</ol>
@@ -55,25 +55,18 @@
 		      			</ul>
 	      			</p>
 					<div class="span5" id="csv-fine-uploader" style="margin-left:0px;"></div>
-					<div class="span1 qq-upload-button btn btn-azure" id="remove_file_button"><i class="fa fa-times"></i></div>
+					<div class="span1 qq-upload-button btn btn-azure" id="remove_file_button"><i class="fa fa-times"></i></div> <br>
+					<div class="row-fluid">
+					</div>
+					<div class="span5" id="importProgressMsg_div" style="margin:10px 0px 0px 0px;">
+						<p id="importProgressMsg" style="visibility:hidden;"></p>
+					</div>
 				</div>
 				<div class="span6" id="insert_memory_div">
-					<h3>2. Insert memory value and options</h3>
-					<p> In this section you can decide to calculate the algorithm comparing each entity attribute with its own history, with the hisotry of all the other entities,
-					with its own history plus the history of all the other entities. Then, insert the memory value (e.g.: 5), which represents the length of the past history to compare.</p>
+					<h3>2. Insert memory value </h3>
+					<p> Memory represents the length of the past history to compare.</p>
 					
-	                <input class="span2" id="insert_memory_input" type="number"> * If left blank, it will be set to the max range
-					<p></p>
-                    <label class="checkbox">
-                        <input type="checkbox" id="option1" value="option1" checked> Compare with entity history
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" id="option2" value="option2"> Compare with all the other entity histories
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" id="option3" value="option3"> Compare with entity history + all the other entity histories
-                    </label>
-                    <p></p>
+	                <input class="span2" id="insert_memory_input" type="number"> * If left blank, it will be set to the max range <br>
                     <div class="span5 qq-upload-button btn btn-azure" id="continue_button" style="margin-left:0px;"><i class="fa fa-floppy-o"></i> Continue</div>
 				</div>
 			</div>
@@ -108,6 +101,9 @@
 					<p> Click the reuse button to continue working with the same data set. </p>
 					<div class="span5 qq-upload-button btn btn-warning" id="drop_button" style="margin-left:0px;"><i class="fa fa-trash-o"></i> Drop</div>
 					<div class="span5 qq-upload-button btn btn-azure" id="reuse_button"><i class="fa fa-repeat"></i> Reuse</div>
+					<div class="span1">
+						<div class="img-outer"><img src="resources/img/loader_1.gif" id="drop_loader" alt="Drop loader"></div>
+					</div>
 				</div>
 			</div>
 			

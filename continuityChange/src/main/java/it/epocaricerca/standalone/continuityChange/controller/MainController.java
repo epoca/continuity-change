@@ -54,7 +54,7 @@ public class MainController {
 	private TagRepository tagRepository;
 
 	@Autowired
-	private ExportState exportState;
+	private ProgressState exportState;
 
 	private List<String> privateEntities = new ArrayList<String>();
 
@@ -117,7 +117,7 @@ public class MainController {
 		
 		List<ChangeDepthThread> threads = new ArrayList<MainController.ChangeDepthThread>();
 
-		this.exportState.reset();
+		this.exportState.resetExportValues();
 		
 		//1. Get labels
 		ArrayList<String> labels = new ArrayList<String>();
@@ -325,8 +325,8 @@ public class MainController {
 					logger.info("Time for single time: " + (System.currentTimeMillis() - startTime));
 				}
 
-				exportState.increment();
-				exportState.setValue(exportState.getCounter()*100/totalEntities);
+				exportState.incrementExportCounter();
+				exportState.setExportValue(exportState.getExportCounter()*100/totalEntities);
 				
 				logger.info("Time for single entity: " + (System.currentTimeMillis() - startEntity));
 			}
@@ -352,7 +352,7 @@ public class MainController {
 	@ResponseBody
 	public Notification getNotifications(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
 		
-		Notification notification = new Notification(exportState.getValue(), "");
+		Notification notification = new Notification(exportState.getExportValue(), 0, 0, "");
 		return notification;
 	}
 

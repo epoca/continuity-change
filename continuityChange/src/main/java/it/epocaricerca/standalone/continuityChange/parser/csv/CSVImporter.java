@@ -1,5 +1,6 @@
 package it.epocaricerca.standalone.continuityChange.parser.csv;
 
+import it.epocaricerca.standalone.continuityChange.controller.ProgressState;
 import it.epocaricerca.standalone.continuityChange.model.Tag;
 import it.epocaricerca.standalone.continuityChange.repository.InMemoryRepository;
 import it.epocaricerca.standalone.continuityChange.repository.TagRepository;
@@ -30,6 +31,11 @@ public class CSVImporter {
 	@Autowired
 	private InMemoryRepository inMemoryRepository;
 
+	@Autowired
+	private ProgressState progressState;
+	
+	private int totalLines = 0;
+
 	public void importCSVLines(String csvFile) throws Exception {
 		logger.info("csvFile " + csvFile);
 
@@ -41,6 +47,18 @@ public class CSVImporter {
 		FileLine nextLine;
 		int count = 0;
 		int threadCount = 0;
+		totalLines = 0;
+		progressState.resetImportValues();
+		
+		while ((reader.read()) != null) {
+			totalLines++;
+		}
+
+		logger.info("Total lines in file: " + totalLines);
+		progressState.setTotalImportLines(totalLines);
+		reader.close();
+		reader.open(new ExecutionContext());
+		
 		while ((nextLine = reader.read()) != null) {
 			lines.add(nextLine);
 
@@ -83,7 +101,7 @@ public class CSVImporter {
 				inMemoryRepository.addEntityAttributes(entityId + "|" + time, currentAttributes);
 			}
 		}
-
+		reader.close();
 		logger.info("Total lines: " + count);
 	}
 
@@ -122,6 +140,9 @@ public class CSVImporter {
 				
 				tags.add(tag);
 				count++;
+				
+				progressState.incrementImportCounter();
+				progressState.setImportValue(progressState.getImportCounter()*100/totalLines);
 			}
 			logger.info("Total lines: " + count);
 			tagRepository.save(tags);

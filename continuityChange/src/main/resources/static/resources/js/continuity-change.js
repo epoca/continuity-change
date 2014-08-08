@@ -4,9 +4,6 @@ google.load('visualization', '1.0', {
 });
 
 var CHART_MEMORY = 5;
-var option1;
-var option2;
-var option3;
 
 $(document).ready(function() {
     csvmanualuploader = $('#csv-fine-uploader').fineUploader({
@@ -37,8 +34,10 @@ $(document).ready(function() {
 	// file uploader callbacks
 	csvmanualuploader.on('error', function(event, id, name, reason) {
 			console.log('error');
+			uploadRunning(false);
 		}).on('complete', function(event, id, name, responseJSON){
 			console.log('complete');
+			uploadRunning(false);
 
 			if(responseJSON != null && responseJSON.success == "true") {
 				$('#insert_memory_title').fadeIn('fast');
@@ -50,37 +49,28 @@ $(document).ready(function() {
 			}
 		})
 		.on('submit', function(event, id, name, responseJSON) {
+			uploadRunning(true);
 			console.log('submit');
 		});
 
 	$('#continue_button').click(function() {
 
 		var memory = $('#insert_memory_input').val();
-
-        option1 = $('#option1:checked').val()?true:false;
-        option2 = $('#option2:checked').val()?true:false;
-        option3 = $('#option3:checked').val()?true:false;
-
-		if(option1 || option2 || option3) {
-			$('#get_results_title').fadeIn('fast');
-			$('#export_button_div').fadeIn('fast');
-			$('#progress_bar_div').fadeIn('fast');
-			
-			if($.isNumeric(memory) && memory !== "")
-				CHART_MEMORY = memory;
-		} else {
-			$('#get_results_title').fadeOut('fast');
-			$('#export_button_div').fadeOut('fast');
-			$('#progress_bar_div').fadeOut('fast');
-			$('#drop_button_div').fadeOut('fast');
-			$('#drop_button_title').fadeOut('fast');
-		}
+		
+		if($.isNumeric(memory) && memory !== "")
+			CHART_MEMORY = memory;
+		
+		$('#get_results_title').fadeIn('fast');
+		$('#export_button_div').fadeIn('fast');
+		$('#progress_bar_div').fadeIn('fast');
 	});
 
 	$('#export_button').click(exportChartAsCSV);
 
 	$('#drop_button').click(function(){
 
+		$('#drop_loader').fadeIn('fast');
+		
 		var request = $.ajax({
 			type : 'GET',
 			url : '/drop',
@@ -93,11 +83,13 @@ $(document).ready(function() {
 			$('#csv-fine-uploader .qq-upload-button').fadeIn('fast');
 			$('#csv-fine-uploader .qq-upload-list').css('margin-top', '10px');
 			$('#remove_file_button').fadeOut('fast');
+			$('#drop_loader').fadeOut('fast');
 		});
 
 		request.fail(function(jqXHR, textStatus) {
 			console.log("Request failed: " + textStatus);
 			console.log(jqXHR);
+			$('#drop_loader').fadeOut('fast');
 		});
 	});
 	
@@ -159,6 +151,28 @@ $('#get_results_title').fadeOut('fast');
 $('#insert_memory_div').fadeOut('fast');
 $('#progress_bar_div').fadeOut('fast');
 $('#remove_file_button').fadeOut('fast');
+$('#drop_loader').fadeOut('fast');
+
+function uploadRunning(isRunning) {
+	if (isRunning == true) {
+    	$('#importProgressMsg').css('visibility', 'visible');
+
+    	var importProgressIntervalId = setInterval(function(){
+	    	NotificationImportPath = '/notifications/import';
+	        $.ajax({ url: NotificationImportPath, success: function(data) {
+	        	$('#importProgressMsg').text('Processed '+data.numOfProcessedLines+' lines of ' + data.totalImportLines);
+	        	if (data.percentageProgress>=99) {
+		        	clearInterval(importProgressIntervalId);
+		        	$('#importProgressMsg').text('Saving lines on database...');
+	        	}
+	        }, dataType: "json"});
+    	}, 500);
+
+	} else {
+		$('#importProgressMsg').css('visibility', 'hidden');
+		$('#importProgressMsg').text('');
+	}
+};
 
 function workflowRunning(isRunning) {
 	if (isRunning == true) {
@@ -167,8 +181,8 @@ function workflowRunning(isRunning) {
     	$('#importMsg').css('visibility', 'visible');
 
     	var exportProgressIntervalId = setInterval(function(){
-    	NotificationPath = '/notifications';
-        $.ajax({ url: NotificationPath, success: function(data) {
+    	NotificationExportPath = '/notifications/export';
+        $.ajax({ url: NotificationExportPath, success: function(data) {
         	$('#importProgressBar').css('width', data.percentageProgress+'%');
         	$('#importMsg').text('Progress: '+data.percentageProgress+'%');
         	if (data.percentageProgress==100) {
@@ -214,7 +228,7 @@ function openWindowWithPost(url, name) {
 }
 
 function exportChartAsCSV() {
-    var exportUrl = '/export/memory/' + CHART_MEMORY + '/first/'+option1+'/second/'+option2+'/third/'+option3+'/';
+    var exportUrl = '/export/memory/' + CHART_MEMORY + '/';
     workflowRunning(true);
     openWindowWithPost(exportUrl, "ChartExport");
 }

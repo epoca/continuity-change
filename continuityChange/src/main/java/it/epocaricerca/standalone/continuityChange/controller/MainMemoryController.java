@@ -36,28 +36,30 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class MainMemoryController {
-	
+
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
 	private final String UPLOAD_CSV_URL = "/upload";
 
 	private final String DROP_DATABASE_URL = "/drop";
 
-	private final String CSV_EXPORT_URL = "/export/memory/{memory}/first/{first}/second/{second}/third/{third}/";
+	private final String CSV_EXPORT_URL = "/export/memory/{memory}/";
 
-	private final String NOTIFICATIONS_URL = "/notifications";
+	private final String EXPORT_NOTIFICATIONS_URL = "/notifications/export";
+
+	private final String IMPORT_NOTIFICATIONS_URL = "/notifications/import";
 
 	@Autowired
 	private CSVImporter csvImporter;
 
 	@Autowired
 	private TagRepository tagRepository;
-	
+
 	@Autowired
 	private InMemoryRepository inMemoryRepository;
 
 	@Autowired
-	private ExportState exportState;
+	private ProgressState progressState;
 
 	@RequestMapping(value = UPLOAD_CSV_URL, method = RequestMethod.POST)
 	@ResponseBody
@@ -73,7 +75,6 @@ public class MainMemoryController {
 
 			if (mfile.getBytes().length > 0) {
 				destFile = new File(mfile.getName());
-
 				logger.info("Create " + destFile);
 
 				BufferedInputStream is = new BufferedInputStream(mfile.getInputStream());
@@ -93,7 +94,7 @@ public class MainMemoryController {
 		destFile.delete();
 
 		int memory = 0;
-		
+
 		for (Integer value : this.inMemoryRepository.getEntityIntervalTime().values()) {
 			if(memory < value.intValue())
 				memory = value.intValue();
@@ -108,54 +109,47 @@ public class MainMemoryController {
 
 	@RequestMapping(value = CSV_EXPORT_URL, method = RequestMethod.POST, headers = "content-type=application/x-www-form-urlencoded;charset=UTF-8")
 	@ResponseBody
-	public ModelAndView continuityChangeExport(@PathVariable int memory, @PathVariable boolean first, @PathVariable boolean second, 
-			@PathVariable boolean third, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public ModelAndView continuityChangeExport(@PathVariable int memory, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		long start = System.currentTimeMillis();
 		logger.info("invocked continuityChangeExport controller with memory " + memory);
 
 		CSVView view = new CSVView();
-		
+
 		List<ChangeDepthThread> threads = new ArrayList<ChangeDepthThread>();
 
-		this.exportState.reset();
-		
+		this.progressState.resetExportValues();
+
 		//1. Get labels
 		ArrayList<String> labels = new ArrayList<String>();
 		labels.add("Time");
 		labels.add("EntityId");
-		if(first) {
-			labels.add("Change1");
-			labels.add("Depth1");
-		}
-		if(second) {
-			labels.add("Change2");
-			labels.add("Depth2");
-		}
-		if(third) {
-			labels.add("Change3");
-			labels.add("Depth3");
-		}
+		labels.add("Change1");
+		labels.add("Change2");
+		labels.add("Change3");
+		labels.add("Depth1");
+		labels.add("Depth2");
+		labels.add("Depth3");
 
-//		long instant = System.currentTimeMillis();
-//		List<String> allEntities = this.tagRepository.findDistinctEntities();
-//		logger.info("Time for loading all entities from db: " + (System.currentTimeMillis() - instant));
-		
+		//		long instant = System.currentTimeMillis();
+		//		List<String> allEntities = this.tagRepository.findDistinctEntities();
+		//		logger.info("Time for loading all entities from db: " + (System.currentTimeMillis() - instant));
+
 		long instant = System.currentTimeMillis();
 		List<String> allEntities = new ArrayList<String>();
 		allEntities.addAll(this.inMemoryRepository.getEntityYearsMap().keySet());
 		logger.info("Time for loading all entities from memory: " + (System.currentTimeMillis() - instant));
-		
+
 		List<Object[]> data = new ArrayList<Object[]>();
 		data.add(labels.toArray());
-		
+
 		logger.info("Total entities: " + allEntities.size());
-		
+
 		int numberOfCores = Runtime.getRuntime().availableProcessors();
-		
+
 		logger.info("N of threads: " + Runtime.getRuntime().availableProcessors());
-		
+
 		int chunk = allEntities.size()/numberOfCores;
-		
+
 		List<List<String>> subLists = new ArrayList<List<String>>();
 		int index = 0;
 		for (int i = 0; i < (numberOfCores-1); i++) {
@@ -163,10 +157,10 @@ public class MainMemoryController {
 			index += chunk;
 		}
 		subLists.add(allEntities.subList(index, (allEntities.size())));
-		
+
 		for (List<String> subList : subLists) {
-			
-			ChangeDepthThread thread = new ChangeDepthThread(subList, data, memory, allEntities.size(), first, second, third);
+
+			ChangeDepthThread thread = new ChangeDepthThread(subList, data, memory, allEntities.size());
 			threads.add(thread);
 			thread.start();
 		}
@@ -174,7 +168,7 @@ public class MainMemoryController {
 		for (ChangeDepthThread currentThread : threads) {
 			currentThread.join();
 		}
-		
+
 		Map<String, Object> model = getModel(request);
 		model.put("dataSource", data);
 		model.put("fileName", "output.csv");
@@ -186,49 +180,41 @@ public class MainMemoryController {
 	private class ChangeDepthThread extends Thread {
 
 		private List<String> entities;
-		
-		private List<Object[]> data;
-		
-		private int memory;
-		
-		private int totalEntities;
-		
-		private boolean first;
-		private boolean second;
-		private boolean third;
 
-		public ChangeDepthThread(List<String> entities, List<Object[]> data, int memory, int totalEntities, boolean first,
-				boolean second, boolean third) {
+		private List<Object[]> data;
+
+		private int memory;
+
+		private int totalEntities;
+
+		public ChangeDepthThread(List<String> entities, List<Object[]> data, int memory, int totalEntities) {
 			this.entities = entities;
 			this.data = data;
 			this.memory = memory;
 			this.totalEntities = totalEntities;
-			this.first = first;
-			this.second = second;
-			this.third = third;
 		}
 
 		@Override
 		public void run() {
 
 			for (String entityId : entities) {
-				
+
 				long startEntity = System.currentTimeMillis();
-				
-//				List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
+
+				//				List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
 				List<Integer> allTimes = new ArrayList<Integer>();
 				allTimes.addAll(inMemoryRepository.getEntityYearsMap().get(entityId));
 				logger.info("Total times: " + allTimes.size());
-				
+
 				List<Object> dataForYear = new ArrayList<Object>();
 				for (Integer time : allTimes) {
 					long startTime = System.currentTimeMillis();
-				
+
 					dataForYear.clear();
 					dataForYear.add("" + time);
 					dataForYear.add(entityId);
 
-//					List<String> currentAttributes = tagRepository.findByEntityIdAndTime(entityId, time);
+					//					List<String> currentAttributes = tagRepository.findByEntityIdAndTime(entityId, time);
 					List<String> currentAttributes = new ArrayList<String>();
 					currentAttributes.addAll(inMemoryRepository.getEntityAttributesMap().get(entityId + "|" + time));
 					logger.info("Total attributes: " + currentAttributes.size());
@@ -244,7 +230,7 @@ public class MainMemoryController {
 					int totalRepetitionsForAll = 0;
 
 					for (String currentAttribute : currentAttributes) {
-						
+
 						long startAttribute = System.currentTimeMillis();
 						boolean isNewForEntity = true; 
 						boolean isNewForOthers = true;
@@ -253,48 +239,42 @@ public class MainMemoryController {
 						int countRepetitionsForOthers = 0;
 						int countRepetitionsForAll = 0;
 						for (int j = previousTime; j >= (previousTime - (memory-1)); j--) {
-//							long start = System.currentTimeMillis();
-							if(first) {
-//								int repetitionsForEntity = tagRepository.countAttributeRepetitionsForEntity(entityId, j, currentAttribute);
-								Integer repetitionsForEntity = inMemoryRepository.getEntityAttributeCount().get(entityId + "|" + j + "|" + currentAttribute);
-								if(repetitionsForEntity != null && repetitionsForEntity.intValue() != 0) {
-									countRepetitionsForEntity += repetitionsForEntity.intValue();
-									isNewForEntity = false;
-								}
+							//							long start = System.currentTimeMillis();
+							//								int repetitionsForEntity = tagRepository.countAttributeRepetitionsForEntity(entityId, j, currentAttribute);
+							Integer repetitionsForEntity = inMemoryRepository.getEntityAttributeCount().get(entityId + "|" + j + "|" + currentAttribute);
+							if(repetitionsForEntity != null && repetitionsForEntity.intValue() != 0) {
+								countRepetitionsForEntity += repetitionsForEntity.intValue();
+								isNewForEntity = false;
 							}
-//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
-//							start = System.currentTimeMillis();
-							if(second) {
-//								int repetitionsForOthers = tagRepository.countAttributeRepetitionsForOthers(entityId, j, currentAttribute);
-								int repetitionsForOthers = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId);
-								if(repetitionsForOthers != 0) {
-									countRepetitionsForOthers += repetitionsForOthers;
-									isNewForOthers = false;
-								}
+							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+							//							start = System.currentTimeMillis();
+							//								int repetitionsForOthers = tagRepository.countAttributeRepetitionsForOthers(entityId, j, currentAttribute);
+							int repetitionsForOthers = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId);
+							if(repetitionsForOthers != 0) {
+								countRepetitionsForOthers += repetitionsForOthers;
+								isNewForOthers = false;
 							}
-//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
-//							start = System.currentTimeMillis();
-							if(third) {
-//								int repetitionsForAll = tagRepository.countAttributeRepetitionsForAll(j, currentAttribute);
-								Integer repetitionsForAll = inMemoryRepository.getAllEntitiesAttributeCount().get(j + "|" + currentAttribute);
-								if(repetitionsForAll != null && repetitionsForAll.intValue() != 0) {
-									countRepetitionsForAll += repetitionsForAll.intValue();
-									isNewForAll = false;
-								}
+							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+							//							start = System.currentTimeMillis();
+							//								int repetitionsForAll = tagRepository.countAttributeRepetitionsForAll(j, currentAttribute);
+							Integer repetitionsForAll = inMemoryRepository.getAllEntitiesAttributeCount().get(j + "|" + currentAttribute);
+							if(repetitionsForAll != null && repetitionsForAll.intValue() != 0) {
+								countRepetitionsForAll += repetitionsForAll.intValue();
+								isNewForAll = false;
 							}
-//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
-							
+							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
+
 						}
 						totalRepetitionsForEntity += countRepetitionsForEntity;
 						totalRepetitionsForOthers += countRepetitionsForOthers;
 						totalRepetitionsForAll += countRepetitionsForAll;
-						if(first && isNewForEntity) {
+						if(isNewForEntity) {
 							countNewAttributesForEntity++;
 						}
-						if(second && isNewForOthers) {
+						if(isNewForOthers) {
 							countNewAttributesForOthers++;
 						}
-						if(third && isNewForAll) {
+						if(isNewForAll) {
 							countNewAttributesForAll++;
 						}
 						logger.info("Time for single attribute: " + (System.currentTimeMillis() - startAttribute));
@@ -309,46 +289,34 @@ public class MainMemoryController {
 					float totalAttributes = currentAttributes.size();
 
 					if(totalAttributes > 0) {
-						if(first) {
-							changeForEntity = countNewAttributesForEntity/totalAttributes;
-							depthForEntity = totalRepetitionsForEntity/totalAttributes;
-						}
-						if(second) {
-							changeForOthers = countNewAttributesForOthers/totalAttributes;
-							depthForOthers = totalRepetitionsForOthers/totalAttributes;
-						}
-						if(third) {
-							changeForAll = countNewAttributesForAll/totalAttributes;
-							depthForAll = totalRepetitionsForAll/totalAttributes;
-						}
+						changeForEntity = countNewAttributesForEntity/totalAttributes;
+						depthForEntity = totalRepetitionsForEntity/totalAttributes;
+						changeForOthers = countNewAttributesForOthers/totalAttributes;
+						depthForOthers = totalRepetitionsForOthers/totalAttributes;
+						changeForAll = countNewAttributesForAll/totalAttributes;
+						depthForAll = totalRepetitionsForAll/totalAttributes;
 					}
 					logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
 							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
 							" ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
 					logger.info("");
-					if(first) {
-						dataForYear.add(changeForEntity);
-						dataForYear.add(depthForEntity);
-					}
-					if(second) {
-						dataForYear.add(changeForOthers);
-						dataForYear.add(depthForOthers);
-					}
-					if(third) {
-						dataForYear.add(changeForAll);
-						dataForYear.add(depthForAll);
-					}
+					dataForYear.add(changeForEntity);
+					dataForYear.add(depthForEntity);
+					dataForYear.add(changeForOthers);
+					dataForYear.add(depthForOthers);
+					dataForYear.add(changeForAll);
+					dataForYear.add(depthForAll);
 					data.add(dataForYear.toArray());
-					
+
 					logger.info("Time for single time: " + (System.currentTimeMillis() - startTime));
 				}
 
-				exportState.increment();
-				exportState.setValue(exportState.getCounter()*100/totalEntities);
-				
+				progressState.incrementExportCounter();
+				progressState.setExportValue(progressState.getExportCounter()*100/totalEntities);
+
 				logger.info("Time for single entity: " + (System.currentTimeMillis() - startEntity));
 			}
-			
+
 		}
 	}
 
@@ -360,17 +328,28 @@ public class MainMemoryController {
 
 		this.tagRepository.deleteAll();
 		this.inMemoryRepository.resetHashMaps();
+		progressState.resetImportValues();
 
 		Response response = new Response();
 		response.setSuccess("true");
 		return response;
 	}
-	
-	@RequestMapping(value = NOTIFICATIONS_URL, method = RequestMethod.GET)
+
+	@RequestMapping(value = EXPORT_NOTIFICATIONS_URL, method = RequestMethod.GET)
 	@ResponseBody
-	public Notification getNotifications(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
-		
-		Notification notification = new Notification(exportState.getValue(), "");
+	public Notification getExportNotifications(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+
+		Notification notification = new Notification(progressState.getExportValue(), 0, 0, "");
+		return notification;
+	}
+
+	@RequestMapping(value = IMPORT_NOTIFICATIONS_URL, method = RequestMethod.GET)
+	@ResponseBody
+	public Notification getImportNotifications(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+		logger.info("progressState.getImportValue() " + progressState.getImportValue());
+		logger.info("progressState.getTotalImportLines() " + progressState.getTotalImportLines());
+		logger.info("progressState.getImportCounter() " + progressState.getImportCounter());
+		Notification notification = new Notification(progressState.getImportValue(), progressState.getTotalImportLines(), progressState.getImportCounter(), "");
 		return notification;
 	}
 
@@ -394,5 +373,5 @@ public class MainMemoryController {
 	//			e.printStackTrace();
 	//		}
 	//	}
-	
+
 }
