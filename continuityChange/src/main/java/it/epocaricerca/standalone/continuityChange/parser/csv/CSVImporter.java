@@ -59,10 +59,16 @@ public class CSVImporter {
 		reader.close();
 		reader.open(new ExecutionContext());
 		
+		int numberOfCores = Runtime.getRuntime().availableProcessors();
+
+		int chunk = totalLines/numberOfCores;
+		
+		logger.info("lines per thread: " + chunk);
+		
 		while ((nextLine = reader.read()) != null) {
 			lines.add(nextLine);
 
-			if(lines.size() == 5000) {
+			if(lines.size() == chunk) {
 				ParseCSVThread thread = new ParseCSVThread(lines);
 				threads.add(thread);
 				thread.start();

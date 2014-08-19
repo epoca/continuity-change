@@ -109,6 +109,8 @@ $(document).ready(function() {
 	
 	$('#remove_file_button').click(function(){
 		
+		$('#remove_file_loader').fadeIn('fast');
+		
 		var request = $.ajax({
 			type : 'GET',
 			url : '/drop',
@@ -132,11 +134,13 @@ $(document).ready(function() {
 	    	$('.progress').addClass('progress-info');
 	    	$('#importProgressBar').css('width', '0%');
 	    	$('#importMsg').text('Progress: 0%');
+	    	$('#remove_file_loader').fadeOut('fast');
 		});
 
 		request.fail(function(jqXHR, textStatus) {
 			console.log("Request failed: " + textStatus);
 			console.log(jqXHR);
+	    	$('#remove_file_loader').fadeOut('fast');
 		});
 	});
 	
@@ -152,6 +156,7 @@ $('#insert_memory_div').fadeOut('fast');
 $('#progress_bar_div').fadeOut('fast');
 $('#remove_file_button').fadeOut('fast');
 $('#drop_loader').fadeOut('fast');
+$('#remove_file_loader').fadeOut('fast');
 
 function uploadRunning(isRunning) {
 	if (isRunning == true) {
