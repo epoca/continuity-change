@@ -62,6 +62,10 @@ $(document).ready(function() {
 		
 		$('#get_results_title').fadeIn('fast');
 		$('#export_button_div').fadeIn('fast');
+    	$('.progress').removeClass('progress-success');
+    	$('.progress').addClass('progress-info');
+    	$('#importProgressBar').css('width', '0%');
+    	$('#importMsg').text('Progress: 0%');
 		$('#progress_bar_div').fadeIn('fast');
 	});
 
@@ -91,20 +95,6 @@ $(document).ready(function() {
 			console.log(jqXHR);
 			$('#drop_loader').fadeOut('fast');
 		});
-	});
-	
-	$('#reuse_button').click(function(){
-		$('#export_button_div').fadeOut('fast');
-		$('#drop_button_title').fadeOut('fast');
-		$('#drop_button_div').fadeOut('fast');
-		$('#get_results_title').fadeOut('fast');
-		$('#progress_bar_div').fadeOut('fast');
-		$('.progress').css('visibility', 'hidden');
-    	$('#importMsg').css('visibility', 'hidden');
-    	$('.progress').removeClass('progress-success');
-    	$('.progress').addClass('progress-info');
-    	$('#importProgressBar').css('width', '0%');
-    	$('#importMsg').text('Progress: 0%');
 	});
 	
 	$('#remove_file_button').click(function(){
