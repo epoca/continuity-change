@@ -165,7 +165,7 @@ function uploadRunning(isRunning) {
     	var importProgressIntervalId = setInterval(function(){
 	    	NotificationImportPath = '/notifications/import';
 	        $.ajax({ url: NotificationImportPath, success: function(data) {
-	        	$('#importProgressMsg').text('Processed '+data.numOfProcessedLines+' lines of ' + data.totalImportLines);
+	        	$('#importProgressMsg').text('Processed '+data.percentageProgress+'% of total lines.');
 	        	if (data.percentageProgress>=99) {
 		        	clearInterval(importProgressIntervalId);
 		        	$('#importProgressMsg').text('Saving lines on database...');
