@@ -176,20 +176,25 @@ function workflowRunning(isRunning) {
     	$('#importMsg').css('visibility', 'visible');
 
     	var exportProgressIntervalId = setInterval(function(){
-    	NotificationExportPath = '/notifications/export';
-        $.ajax({ url: NotificationExportPath, success: function(data) {
-        	$('#importProgressBar').css('width', data.percentageProgress+'%');
-        	$('#importMsg').text('Progress: '+data.percentageProgress+'%');
-        	if (data.percentageProgress==100) {
-	        	clearInterval(exportProgressIntervalId);
-		    	$('#importProgressBar').css('width', '100%');
-		    	$('.progress').removeClass('progress-info');
-		    	$('.progress').addClass('progress-success');
-		    	$('#drop_button_title').fadeIn('fast');
-		    	$('#drop_button_div').fadeIn('fast');
-        	}
-        }, dataType: "json"});
-    }, 500);
+	    	NotificationExportPath = '/notifications/export';
+	        $.ajax({ 
+	        	url: NotificationExportPath, 
+	        	success: function(data) {
+		        	$('#importProgressBar').css('width', data.percentageProgress+'%');
+		        	$('#importMsg').text('Progress: '+data.percentageProgress+'%');
+		        	console.log('Progress: '+data.percentageProgress+'%');
+		        	if (data.percentageProgress==100) {
+			        	clearInterval(exportProgressIntervalId);
+				    	$('#importProgressBar').css('width', '100%');
+				    	$('.progress').removeClass('progress-info');
+				    	$('.progress').addClass('progress-success');
+				    	$('#drop_button_title').fadeIn('fast');
+				    	$('#drop_button_div').fadeIn('fast');
+		        	}
+	        	}, 
+	        	dataType: "json"
+	        });
+    	}, 500);
 
 	} else {
 		$('#export_button_div').fadeOut('fast');
