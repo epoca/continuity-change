@@ -114,6 +114,16 @@
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+  			<artifactId>commons-lang3</artifactId>
+  			<version>3.3.2</version>
+  		</dependency>
+  		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.0</version>
+		</dependency>
 	</dependencies>
 
 	<properties>
@@ -137,6 +147,23 @@
 						<contextPath>/continuityChange</contextPath>
 					</webAppConfig>
 				</configuration>
+			</plugin>
+			<plugin>
+			  <groupId>org.codehaus.mojo</groupId>
+			  <artifactId>osxappbundle-maven-plugin</artifactId>
+			  <version>1.0-alpha-2</version>
+			  <executions>
+			    <execution>
+			      <goals>
+			       <goal>bundle</goal>
+			      </goals>
+			      <configuration>
+			        <mainClass>it.epocaricerca.standalone.continuityChange.Application</mainClass>
+			        <bundleName>ContinuityChange</bundleName>
+			        <vmOptions>-Xms512m -Xmx8g</vmOptions>
+			      </configuration>
+			   </execution>
+			 </executions>
 			</plugin>
 		</plugins>
 	</build>

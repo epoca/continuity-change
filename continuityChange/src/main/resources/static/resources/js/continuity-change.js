@@ -96,6 +96,25 @@ $(document).ready(function() {
 			$('#drop_loader').fadeOut('fast');
 		});
 	});
+
+	$('#close_app').click(function(){
+
+		$('#drop_loader').fadeIn('fast');
+		
+		var request = $.ajax({
+			type : 'GET',
+			url : '/terminate',
+			dataType : "json",
+			contentType : 'application/json'
+		});
+
+		request.done(function(jsonResponse) {
+		});
+
+		request.fail(function(jqXHR, textStatus) {
+			console.log("Request failed: " + textStatus);
+		});
+	});
 	
 	$('#remove_file_button').click(function(){
 		

@@ -12,6 +12,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +52,8 @@ public class MainMemoryController {
 	private final String EXPORT_NOTIFICATIONS_URL = "/notifications/export";
 
 	private final String IMPORT_NOTIFICATIONS_URL = "/notifications/import";
+
+	private final String TERMINATE_APPLICATION_URL = "/terminate";
 
 	@Autowired
 	private CSVImporter csvImporter;
@@ -141,6 +147,9 @@ public class MainMemoryController {
 		labels.add("NumDepth3");
 		labels.add("DenDepth3");
 		labels.add("Depth3");
+		labels.add("MaxNum");
+		labels.add("MinNum");
+		labels.add("NumStDev");
 
 		//		long instant = System.currentTimeMillis();
 		//		List<String> allEntities = this.tagRepository.findDistinctEntities();
@@ -299,7 +308,8 @@ public class MainMemoryController {
 					float changeForAll = 0;
 					float depthForAll = 0;
 					float totalAttributes = currentAttributes.size();
-
+					double numStDev = 0;
+					List nums = new ArrayList();
 					if(totalAttributes > 0) {
 						changeForEntity = countNewAttributesForEntity/totalAttributes;
 						depthForEntity = totalRepetitionsForEntity/totalAttributes;
@@ -307,6 +317,13 @@ public class MainMemoryController {
 						depthForOthers = totalRepetitionsForOthers/totalAttributes;
 						changeForAll = countNewAttributesForAll/totalAttributes;
 						depthForAll = totalRepetitionsForAll/totalAttributes;
+						
+						double[] depthNums = {totalRepetitionsForEntity, totalRepetitionsForOthers, totalRepetitionsForAll}; 
+						
+						nums = Arrays.asList(ArrayUtils.toObject(depthNums));
+						
+						StandardDeviation standardDeviation = new StandardDeviation();
+						numStDev = standardDeviation.evaluate(depthNums);
 					}
 					logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
 							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
@@ -348,6 +365,13 @@ public class MainMemoryController {
 					dataForYear.add(totalAttributes);
 					//Depth 3
 					dataForYear.add(depthForAll);
+					//Max num
+					dataForYear.add(Collections.max(nums));
+					//Min num
+					dataForYear.add(Collections.min(nums));
+					//Num st dev
+					dataForYear.add(numStDev);
+					
 					data.add(dataForYear.toArray());
 
 					logger.info("Time for single time: " + (System.currentTimeMillis() - startTime));
@@ -383,6 +407,14 @@ public class MainMemoryController {
 
 		Notification notification = new Notification(progressState.getExportValue(), 0, 0, "");
 		return notification;
+	}
+
+	@RequestMapping(value = TERMINATE_APPLICATION_URL, method = RequestMethod.GET)
+	@ResponseBody
+	public String terminate(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+
+		System.exit(0);
+		return "";
 	}
 
 	@RequestMapping(value = IMPORT_NOTIFICATIONS_URL, method = RequestMethod.GET)
