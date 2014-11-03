@@ -130,15 +130,15 @@ public class MainMemoryController {
 		ArrayList<String> labels = new ArrayList<String>();
 		labels.add("Time");
 		labels.add("EntityId");
-//		labels.add("NumChange1");
-//		labels.add("DenChange1");
-//		labels.add("Change1");
-//		labels.add("NumChange2");
-//		labels.add("DenChange2");
-//		labels.add("Change2");
-//		labels.add("NumChange3");
-//		labels.add("DenChange3");
-//		labels.add("Change3");
+		labels.add("NumChange1");
+		labels.add("DenChange1");
+		labels.add("Change1");
+		labels.add("NumChange2");
+		labels.add("DenChange2");
+		labels.add("Change2");
+		labels.add("NumChange3");
+		labels.add("DenChange3");
+		labels.add("Change3");
 		labels.add("MaxNumDepth1");
 		labels.add("MinNumDepth1");
 		labels.add("StDevNumDepth1");
@@ -336,24 +336,24 @@ public class MainMemoryController {
 							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
 							" ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
 					logger.info("");
-//					//Num change 1
-//					dataForYear.add(countNewAttributesForEntity);
-//					//Den change 1
-//					dataForYear.add(totalAttributes);
-//					//Change 1
-//					dataForYear.add(changeForEntity);
-//					//Num change 2
-//					dataForYear.add(countNewAttributesForOthers);
-//					//Den change 2
-//					dataForYear.add(totalAttributes);
-//					//Change 2
-//					dataForYear.add(changeForOthers);
-//					//Num change 3
-//					dataForYear.add(countNewAttributesForAll);
-//					//Den change 3
-//					dataForYear.add(totalAttributes);
-//					//Change 3
-//					dataForYear.add(changeForAll);
+					//Num change 1
+					dataForYear.add(countNewAttributesForEntity);
+					//Den change 1
+					dataForYear.add(totalAttributes);
+					//Change 1
+					dataForYear.add(changeForEntity);
+					//Num change 2
+					dataForYear.add(countNewAttributesForOthers);
+					//Den change 2
+					dataForYear.add(totalAttributes);
+					//Change 2
+					dataForYear.add(changeForOthers);
+					//Num change 3
+					dataForYear.add(countNewAttributesForAll);
+					//Den change 3
+					dataForYear.add(totalAttributes);
+					//Change 3
+					dataForYear.add(changeForAll);
 					//Max num depth 1
 					dataForYear.add(Collections.max(numsForEntity, getComparator()));
 					//Min num depth 1
