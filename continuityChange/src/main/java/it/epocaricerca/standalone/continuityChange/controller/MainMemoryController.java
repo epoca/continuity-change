@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.aspectj.weaver.tools.cache.AsynchronousFileCacheBacking.ClearCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +57,8 @@ public class MainMemoryController {
 
 	private final String TERMINATE_APPLICATION_URL = "/terminate";
 
+	private Comparator<Integer> comparator;
+	
 	@Autowired
 	private CSVImporter csvImporter;
 
@@ -70,7 +74,6 @@ public class MainMemoryController {
 	@RequestMapping(value = UPLOAD_CSV_URL, method = RequestMethod.POST)
 	@ResponseBody
 	public Response uploadData(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
-		long start = System.currentTimeMillis();
 		logger.info("Received upload multipart request");
 		File destFile = null;
 		MultipartHttpServletRequest mrequest = (MultipartHttpServletRequest) request;
@@ -109,14 +112,12 @@ public class MainMemoryController {
 		Response uploadResponse = new Response();
 		uploadResponse.setSuccess("true");
 		uploadResponse.setMaxMemory(memory);
-		logger.info("Time to upload: " + (System.currentTimeMillis() - start));
 		return uploadResponse;
 	}
 
 	@RequestMapping(value = CSV_EXPORT_URL, method = RequestMethod.POST, headers = "content-type=application/x-www-form-urlencoded;charset=UTF-8")
 	@ResponseBody
 	public ModelAndView continuityChangeExport(@PathVariable int memory, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		long start = System.currentTimeMillis();
 		logger.info("invocked continuityChangeExport controller with memory " + memory);
 
 		CSVView view = new CSVView();
@@ -129,27 +130,33 @@ public class MainMemoryController {
 		ArrayList<String> labels = new ArrayList<String>();
 		labels.add("Time");
 		labels.add("EntityId");
-		labels.add("NumChange1");
-		labels.add("DenChange1");
-		labels.add("Change1");
-		labels.add("NumChange2");
-		labels.add("DenChange2");
-		labels.add("Change2");
-		labels.add("NumChange3");
-		labels.add("DenChange3");
-		labels.add("Change3");
+//		labels.add("NumChange1");
+//		labels.add("DenChange1");
+//		labels.add("Change1");
+//		labels.add("NumChange2");
+//		labels.add("DenChange2");
+//		labels.add("Change2");
+//		labels.add("NumChange3");
+//		labels.add("DenChange3");
+//		labels.add("Change3");
+		labels.add("MaxNumDepth1");
+		labels.add("MinNumDepth1");
+		labels.add("StDevNumDepth1");
 		labels.add("NumDepth1");
 		labels.add("DenDepth1");
 		labels.add("Depth1");
+		labels.add("MaxNumDepth2");
+		labels.add("MinNumDepth2");
+		labels.add("StDevNumDepth2");
 		labels.add("NumDepth2");
 		labels.add("DenDepth2");
 		labels.add("Depth2");
+		labels.add("MaxNumDepth3");
+		labels.add("MinNumDepth3");
+		labels.add("StDevNumDepth3");
 		labels.add("NumDepth3");
 		labels.add("DenDepth3");
 		labels.add("Depth3");
-		labels.add("MaxNum");
-		labels.add("MinNum");
-		labels.add("NumStDev");
 
 		//		long instant = System.currentTimeMillis();
 		//		List<String> allEntities = this.tagRepository.findDistinctEntities();
@@ -193,8 +200,7 @@ public class MainMemoryController {
 		Map<String, Object> model = getModel(request);
 		model.put("dataSource", data);
 		model.put("fileName", "output.csv");
-
-		logger.info("Time to export: " + (System.currentTimeMillis() - start));
+		
 		return new ModelAndView(view, model);
 	}
 
@@ -220,16 +226,18 @@ public class MainMemoryController {
 
 			for (String entityId : entities) {
 
-				long startEntity = System.currentTimeMillis();
-
 				//				List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
 				List<Integer> allTimes = new ArrayList<Integer>();
 				allTimes.addAll(inMemoryRepository.getEntityYearsMap().get(entityId));
 				logger.info("Total times: " + allTimes.size());
 
 				List<Object> dataForYear = new ArrayList<Object>();
+				
+				List<Integer> numsForEntity = new ArrayList<Integer>();
+				List<Integer> numsForOthers = new ArrayList<Integer>();
+				List<Integer> numsForAll = new ArrayList<Integer>();
+				
 				for (Integer time : allTimes) {
-					long startTime = System.currentTimeMillis();
 
 					dataForYear.clear();
 					dataForYear.add("" + time);
@@ -249,46 +257,47 @@ public class MainMemoryController {
 					int totalRepetitionsForOthers = 0;
 					int countNewAttributesForAll = 0;
 					int totalRepetitionsForAll = 0;
-
+					
+					numsForEntity.clear();
+					numsForOthers.clear();
+					numsForAll.clear();
+					
 					for (String currentAttribute : currentAttributes) {
 
-						long startAttribute = System.currentTimeMillis();
 						boolean isNewForEntity = true; 
 						boolean isNewForOthers = true;
 						boolean isNewForAll = true;
 						int countRepetitionsForEntity = 0;
 						int countRepetitionsForOthers = 0;
 						int countRepetitionsForAll = 0;
+						
 						for (int j = previousTime; j >= (previousTime - (memory-1)); j--) {
-							//							long start = System.currentTimeMillis();
-							//								int repetitionsForEntity = tagRepository.countAttributeRepetitionsForEntity(entityId, j, currentAttribute);
 							Integer repetitionsForEntity = inMemoryRepository.getEntityAttributeCount().get(entityId + "|" + j + "|" + currentAttribute);
 							if(repetitionsForEntity != null && repetitionsForEntity.intValue() != 0) {
 								countRepetitionsForEntity += repetitionsForEntity.intValue();
 								isNewForEntity = false;
 							}
-							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
-							//							start = System.currentTimeMillis();
-							//								int repetitionsForOthers = tagRepository.countAttributeRepetitionsForOthers(entityId, j, currentAttribute);
 							int repetitionsForOthers = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId);
 							if(repetitionsForOthers != 0) {
 								countRepetitionsForOthers += repetitionsForOthers;
 								isNewForOthers = false;
 							}
-							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
-							//							start = System.currentTimeMillis();
-							//								int repetitionsForAll = tagRepository.countAttributeRepetitionsForAll(j, currentAttribute);
 							Integer repetitionsForAll = inMemoryRepository.getAllEntitiesAttributeCount().get(j + "|" + currentAttribute);
 							if(repetitionsForAll != null && repetitionsForAll.intValue() != 0) {
 								countRepetitionsForAll += repetitionsForAll.intValue();
 								isNewForAll = false;
 							}
-							//							logger.info("Time to execute query: " + (System.currentTimeMillis() - start));
 
 						}
+						
+						numsForEntity.add(new Integer(countRepetitionsForEntity));
+						numsForOthers.add(new Integer(countRepetitionsForOthers));
+						numsForAll.add(new Integer(countRepetitionsForAll));
+						
 						totalRepetitionsForEntity += countRepetitionsForEntity;
 						totalRepetitionsForOthers += countRepetitionsForOthers;
 						totalRepetitionsForAll += countRepetitionsForAll;
+						
 						if(isNewForEntity) {
 							countNewAttributesForEntity++;
 						}
@@ -298,18 +307,18 @@ public class MainMemoryController {
 						if(isNewForAll) {
 							countNewAttributesForAll++;
 						}
-						logger.info("Time for single attribute: " + (System.currentTimeMillis() - startAttribute));
 					}
 
-					float changeForEntity = 0;
-					float depthForEntity = 0;
-					float changeForOthers = 0;
-					float depthForOthers = 0;
-					float changeForAll = 0;
-					float depthForAll = 0;
+					float changeForEntity = 0f;
+					float depthForEntity = 0f;
+					float changeForOthers = 0f;
+					float depthForOthers = 0f;
+					float changeForAll = 0f;
+					float depthForAll = 0f;
 					float totalAttributes = currentAttributes.size();
-					double numStDev = 0;
-					List nums = new ArrayList();
+					double numStDev1 = 0f;
+					double numStDev2 = 0f;
+					double numStDev3 = 0f;
 					if(totalAttributes > 0) {
 						changeForEntity = countNewAttributesForEntity/totalAttributes;
 						depthForEntity = totalRepetitionsForEntity/totalAttributes;
@@ -318,69 +327,75 @@ public class MainMemoryController {
 						changeForAll = countNewAttributesForAll/totalAttributes;
 						depthForAll = totalRepetitionsForAll/totalAttributes;
 						
-						double[] depthNums = {totalRepetitionsForEntity, totalRepetitionsForOthers, totalRepetitionsForAll}; 
-						
-						nums = Arrays.asList(ArrayUtils.toObject(depthNums));
-						
 						StandardDeviation standardDeviation = new StandardDeviation();
-						numStDev = standardDeviation.evaluate(depthNums);
+						numStDev1 = standardDeviation.evaluate(toDoubleArray(numsForEntity));
+						numStDev2 = standardDeviation.evaluate(toDoubleArray(numsForOthers));
+						numStDev3 = standardDeviation.evaluate(toDoubleArray(numsForAll));
 					}
 					logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
 							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
 							" ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
 					logger.info("");
-					//Num change 1
-					dataForYear.add(countNewAttributesForEntity);
-					//Den change 1
-					dataForYear.add(totalAttributes);
-					//Change 1
-					dataForYear.add(changeForEntity);
-					//Num change 2
-					dataForYear.add(countNewAttributesForOthers);
-					//Den change 2
-					dataForYear.add(totalAttributes);
-					//Change 2
-					dataForYear.add(changeForOthers);
-					//Num change 3
-					dataForYear.add(countNewAttributesForAll);
-					//Den change 3
-					dataForYear.add(totalAttributes);
-					//Change 3
-					dataForYear.add(changeForAll);
+//					//Num change 1
+//					dataForYear.add(countNewAttributesForEntity);
+//					//Den change 1
+//					dataForYear.add(totalAttributes);
+//					//Change 1
+//					dataForYear.add(changeForEntity);
+//					//Num change 2
+//					dataForYear.add(countNewAttributesForOthers);
+//					//Den change 2
+//					dataForYear.add(totalAttributes);
+//					//Change 2
+//					dataForYear.add(changeForOthers);
+//					//Num change 3
+//					dataForYear.add(countNewAttributesForAll);
+//					//Den change 3
+//					dataForYear.add(totalAttributes);
+//					//Change 3
+//					dataForYear.add(changeForAll);
+					//Max num depth 1
+					dataForYear.add(Collections.max(numsForEntity, getComparator()));
+					//Min num depth 1
+					dataForYear.add(Collections.min(numsForEntity, getComparator()));
+					//Num st dev depth 1
+					dataForYear.add(numStDev1);
 					//Num depth 1
 					dataForYear.add(totalRepetitionsForEntity);
 					//Den depth 1
 					dataForYear.add(totalAttributes);
 					//Depth 1
 					dataForYear.add(depthForEntity);
-					//Num depth 1
+					//Max num depth 2
+					dataForYear.add(Collections.max(numsForOthers, getComparator()));
+					//Min num depth 2
+					dataForYear.add(Collections.min(numsForOthers, getComparator()));
+					//Num st dev depth 2
+					dataForYear.add(numStDev2);
+					//Num depth 2
 					dataForYear.add(totalRepetitionsForOthers);
-					//Den depth 1
+					//Den depth 2
 					dataForYear.add(totalAttributes);
 					//Depth 2
 					dataForYear.add(depthForOthers);
-					//Num depth 1
+					//Max num depth 3
+					dataForYear.add(Collections.max(numsForAll, getComparator()));
+					//Min num depth 3
+					dataForYear.add(Collections.min(numsForAll, getComparator()));
+					//Num st dev depth 3
+					dataForYear.add(numStDev3);
+					//Num depth 3
 					dataForYear.add(totalRepetitionsForAll);
-					//Den depth 1
+					//Den depth 3
 					dataForYear.add(totalAttributes);
 					//Depth 3
 					dataForYear.add(depthForAll);
-					//Max num
-					dataForYear.add(Collections.max(nums));
-					//Min num
-					dataForYear.add(Collections.min(nums));
-					//Num st dev
-					dataForYear.add(numStDev);
 					
 					data.add(dataForYear.toArray());
-
-					logger.info("Time for single time: " + (System.currentTimeMillis() - startTime));
 				}
 
 				progressState.incrementExportCounter();
 				progressState.setExportValue(progressState.getExportCounter()*100/totalEntities);
-
-				logger.info("Time for single entity: " + (System.currentTimeMillis() - startEntity));
 			}
 
 		}
@@ -439,13 +454,37 @@ public class MainMemoryController {
 		return format;
 	}
 
-	//	@ExceptionHandler(Exception.class)
-	//	public void handleException(Exception ex, HttpServletResponse response) {
-	//		try {
-	//			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getLocalizedMessage());
-	//		} catch (IOException e) {
-	//			e.printStackTrace();
-	//		}
-	//	}
+	public Comparator<Integer> getComparator() {
+		
+		if(comparator == null) {
+			comparator = new Comparator<Integer>() {
+
+				@Override
+				public int compare(Integer num1, Integer num2) {
+					
+					if(num1.intValue() > num2.intValue())
+						return 1;
+					else if(num1.intValue() < num2.intValue())
+						return -1;
+					else
+						return 0;
+				}
+			};
+		}
+		
+		return comparator;
+		
+	}
+	
+	public double[] toDoubleArray(List<Integer> nums) {
+		
+		double[] values = new double[nums.size()];
+		
+		for (int i = 0; i < nums.size(); i++) {
+			values[i] = nums.get(i).doubleValue();
+		}
+		
+		return values;
+	}
 
 }

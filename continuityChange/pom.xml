@@ -160,7 +160,7 @@
 			      <configuration>
 			        <mainClass>it.epocaricerca.standalone.continuityChange.Application</mainClass>
 			        <bundleName>ContinuityChange</bundleName>
-			        <vmOptions>-Xms512m -Xmx8g</vmOptions>
+			        <vmOptions>-Xms512m -Xmx16g</vmOptions>
 			      </configuration>
 			   </execution>
 			 </executions>
