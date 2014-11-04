@@ -26,6 +26,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.aspectj.weaver.tools.cache.AsynchronousFileCacheBacking.ClearCommand;
 import org.slf4j.Logger;
@@ -142,18 +143,21 @@ public class MainMemoryController {
 		labels.add("MaxNumDepth1");
 		labels.add("MinNumDepth1");
 		labels.add("StDevNumDepth1");
+		labels.add("AvgNumDepth1");
 		labels.add("NumDepth1");
 		labels.add("DenDepth1");
 		labels.add("Depth1");
 		labels.add("MaxNumDepth2");
 		labels.add("MinNumDepth2");
 		labels.add("StDevNumDepth2");
+		labels.add("AvgNumDepth2");
 		labels.add("NumDepth2");
 		labels.add("DenDepth2");
 		labels.add("Depth2");
 		labels.add("MaxNumDepth3");
 		labels.add("MinNumDepth3");
 		labels.add("StDevNumDepth3");
+		labels.add("AvgNumDepth3");
 		labels.add("NumDepth3");
 		labels.add("DenDepth3");
 		labels.add("Depth3");
@@ -226,16 +230,14 @@ public class MainMemoryController {
 
 			for (String entityId : entities) {
 
-				//				List<Integer> allTimes = tagRepository.findDistinctTimesForEntity(entityId);
 				List<Integer> allTimes = new ArrayList<Integer>();
 				allTimes.addAll(inMemoryRepository.getEntityYearsMap().get(entityId));
-				logger.info("Total times: " + allTimes.size());
 
 				List<Object> dataForYear = new ArrayList<Object>();
-				
-				List<Integer> numsForEntity = new ArrayList<Integer>();
-				List<Integer> numsForOthers = new ArrayList<Integer>();
-				List<Integer> numsForAll = new ArrayList<Integer>();
+
+				List<Integer> depthNumsForEntity = new ArrayList<Integer>();
+				List<Integer> depthNumsForOthers = new ArrayList<Integer>();
+				List<Integer> depthNumsForAll = new ArrayList<Integer>();
 				
 				for (Integer time : allTimes) {
 
@@ -243,11 +245,9 @@ public class MainMemoryController {
 					dataForYear.add("" + time);
 					dataForYear.add(entityId);
 
-					//					List<String> currentAttributes = tagRepository.findByEntityIdAndTime(entityId, time);
 					List<String> currentAttributes = new ArrayList<String>();
 					currentAttributes.addAll(inMemoryRepository.getEntityAttributesMap().get(entityId + "|" + time));
-					logger.info("Total attributes: " + currentAttributes.size());
-
+					
 					//For each year get the new citations
 					int previousTime = time.intValue() - 1;
 
@@ -257,10 +257,10 @@ public class MainMemoryController {
 					int totalRepetitionsForOthers = 0;
 					int countNewAttributesForAll = 0;
 					int totalRepetitionsForAll = 0;
-					
-					numsForEntity.clear();
-					numsForOthers.clear();
-					numsForAll.clear();
+
+					depthNumsForEntity.clear();
+					depthNumsForOthers.clear();
+					depthNumsForAll.clear();
 					
 					for (String currentAttribute : currentAttributes) {
 
@@ -277,22 +277,25 @@ public class MainMemoryController {
 								countRepetitionsForEntity += repetitionsForEntity.intValue();
 								isNewForEntity = false;
 							}
-							int repetitionsForOthers = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId);
+							int repetitionsForOthers = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId, false);
 							if(repetitionsForOthers != 0) {
 								countRepetitionsForOthers += repetitionsForOthers;
 								isNewForOthers = false;
 							}
-							Integer repetitionsForAll = inMemoryRepository.getAllEntitiesAttributeCount().get(j + "|" + currentAttribute);
-							if(repetitionsForAll != null && repetitionsForAll.intValue() != 0) {
-								countRepetitionsForAll += repetitionsForAll.intValue();
+							int repetitionsForAll = inMemoryRepository.countAttributeRepetitionsForOthers(j, currentAttribute, entityId, true);
+							if(repetitionsForAll != 0) {
+								countRepetitionsForAll += repetitionsForAll;
 								isNewForAll = false;
 							}
 
 						}
+						if(entityId.equals("185")) {
+							logger.info("EntityId: " + entityId + " Time: " + time + " Attribute: " + currentAttribute + " repetitionsForOthers: " + countRepetitionsForOthers);
+						}
 						
-						numsForEntity.add(new Integer(countRepetitionsForEntity));
-						numsForOthers.add(new Integer(countRepetitionsForOthers));
-						numsForAll.add(new Integer(countRepetitionsForAll));
+						depthNumsForEntity.add(new Integer(countRepetitionsForEntity));
+						depthNumsForOthers.add(new Integer(countRepetitionsForOthers));
+						depthNumsForAll.add(new Integer(countRepetitionsForAll));
 						
 						totalRepetitionsForEntity += countRepetitionsForEntity;
 						totalRepetitionsForOthers += countRepetitionsForOthers;
@@ -316,9 +319,12 @@ public class MainMemoryController {
 					float changeForAll = 0f;
 					float depthForAll = 0f;
 					float totalAttributes = currentAttributes.size();
-					double numStDev1 = 0f;
-					double numStDev2 = 0f;
-					double numStDev3 = 0f;
+					double depthNumStDev1 = 0f;
+					double depthNumStDev2 = 0f;
+					double depthNumStDev3 = 0f;
+					double depthNumAvg1 = 0f;
+					double depthNumAvg2 = 0f;
+					double depthNumAvg3 = 0f;
 					if(totalAttributes > 0) {
 						changeForEntity = countNewAttributesForEntity/totalAttributes;
 						depthForEntity = totalRepetitionsForEntity/totalAttributes;
@@ -328,14 +334,19 @@ public class MainMemoryController {
 						depthForAll = totalRepetitionsForAll/totalAttributes;
 						
 						StandardDeviation standardDeviation = new StandardDeviation();
-						numStDev1 = standardDeviation.evaluate(toDoubleArray(numsForEntity));
-						numStDev2 = standardDeviation.evaluate(toDoubleArray(numsForOthers));
-						numStDev3 = standardDeviation.evaluate(toDoubleArray(numsForAll));
+						Mean mean = new Mean();
+						double[] numsForEntityArray = toDoubleArray(depthNumsForEntity);
+						double[] numsForOthersArray = toDoubleArray(depthNumsForOthers);
+						double[] numsForAllArray = toDoubleArray(depthNumsForAll);
+						depthNumStDev1 = standardDeviation.evaluate(numsForEntityArray);
+						depthNumStDev2 = standardDeviation.evaluate(numsForOthersArray);
+						depthNumStDev3 = standardDeviation.evaluate(numsForAllArray);
+						depthNumAvg1 = mean.evaluate(numsForEntityArray);
+						depthNumAvg2 = mean.evaluate(numsForOthersArray);
+						depthNumAvg3 = mean.evaluate(numsForAllArray);
+						
 					}
-					logger.info("ChangeForEntity: " + changeForEntity + " DepthForEntity: " + depthForEntity + 
-							" ChangeForOthers: " + changeForOthers + " DepthForOthers: " + depthForOthers + 
-							" ChangeForAll: " + changeForAll + " DepthForAll: " + depthForAll + " for year " + time.intValue());
-					logger.info("");
+					
 					//Num change 1
 					dataForYear.add(countNewAttributesForEntity);
 					//Den change 1
@@ -355,11 +366,13 @@ public class MainMemoryController {
 					//Change 3
 					dataForYear.add(changeForAll);
 					//Max num depth 1
-					dataForYear.add(Collections.max(numsForEntity, getComparator()));
+					dataForYear.add(Collections.max(depthNumsForEntity, getComparator()));
 					//Min num depth 1
-					dataForYear.add(Collections.min(numsForEntity, getComparator()));
+					dataForYear.add(Collections.min(depthNumsForEntity, getComparator()));
 					//Num st dev depth 1
-					dataForYear.add(numStDev1);
+					dataForYear.add(depthNumStDev1);
+					//Avg num depth 1
+					dataForYear.add(depthNumAvg1);
 					//Num depth 1
 					dataForYear.add(totalRepetitionsForEntity);
 					//Den depth 1
@@ -367,11 +380,13 @@ public class MainMemoryController {
 					//Depth 1
 					dataForYear.add(depthForEntity);
 					//Max num depth 2
-					dataForYear.add(Collections.max(numsForOthers, getComparator()));
+					dataForYear.add(Collections.max(depthNumsForOthers, getComparator()));
 					//Min num depth 2
-					dataForYear.add(Collections.min(numsForOthers, getComparator()));
+					dataForYear.add(Collections.min(depthNumsForOthers, getComparator()));
 					//Num st dev depth 2
-					dataForYear.add(numStDev2);
+					dataForYear.add(depthNumStDev2);
+					//Avg num depth 2
+					dataForYear.add(depthNumAvg2);
 					//Num depth 2
 					dataForYear.add(totalRepetitionsForOthers);
 					//Den depth 2
@@ -379,11 +394,13 @@ public class MainMemoryController {
 					//Depth 2
 					dataForYear.add(depthForOthers);
 					//Max num depth 3
-					dataForYear.add(Collections.max(numsForAll, getComparator()));
+					dataForYear.add(Collections.max(depthNumsForAll, getComparator()));
 					//Min num depth 3
-					dataForYear.add(Collections.min(numsForAll, getComparator()));
+					dataForYear.add(Collections.min(depthNumsForAll, getComparator()));
 					//Num st dev depth 3
-					dataForYear.add(numStDev3);
+					dataForYear.add(depthNumStDev3);
+					//Avg num depth 3
+					dataForYear.add(depthNumAvg3);
 					//Num depth 3
 					dataForYear.add(totalRepetitionsForAll);
 					//Den depth 3

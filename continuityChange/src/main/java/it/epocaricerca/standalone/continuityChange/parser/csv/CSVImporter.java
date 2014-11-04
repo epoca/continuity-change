@@ -138,11 +138,9 @@ public class CSVImporter {
 					tag.setTime(0);
 				tag.setAttribute(line.getAttribute());
 				
-				inMemoryRepository.addEntityAttributeCount(tag.getEntityId() + "|" + tag.getTime() + "|" + tag.getAttribute(), tag.getAttribute());
+				inMemoryRepository.addEntityAttributeCount(tag.getEntityId() + "|" + tag.getTime() + "|" + tag.getAttribute());
 				
-				inMemoryRepository.addAllOtherEntitiesAttributeCount(tag.getTime() + "|" + tag.getAttribute(), tag.getEntityId(), tag.getAttribute());
-				
-				inMemoryRepository.addAllEntitiesAttributeCount(tag.getTime() + "|" + tag.getAttribute(), tag.getAttribute());
+				inMemoryRepository.addAllOtherEntitiesAttributeCount(tag.getTime() + "|" + tag.getAttribute(), tag.getEntityId());
 				
 				tags.add(tag);
 				count++;

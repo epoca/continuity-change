@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface TagRepository extends JpaRepository<Tag, Long>{
 
 	@Cacheable("attributes")
-	@Query("SELECT DISTINCT t.attribute FROM Tag t WHERE t.entityId = :entityId AND t.time = :time")
+	@Query("SELECT t.attribute FROM Tag t WHERE t.entityId = :entityId AND t.time = :time")
 	List<String> findByEntityIdAndTime(@Param("entityId") String entityId, @Param("time") int time);
 
 	@Cacheable("tagsCountForMe")
